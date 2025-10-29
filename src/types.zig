@@ -93,7 +93,15 @@ pub const TransactionResult = enum {
     tes_success,            // Success
 };
 
+/// Signer for multi-signature transactions (BLOCKER #4 FIX)
+pub const Signer = struct {
+    account: AccountID,
+    signing_pub_key: [33]u8,
+    txn_signature: []const u8,
+};
+
 /// Base transaction structure
+/// UPDATED: Now supports multi-signature (BLOCKER #4 FIX)
 pub const Transaction = struct {
     tx_type: TransactionType,
     account: AccountID,
@@ -101,11 +109,18 @@ pub const Transaction = struct {
     sequence: u32,
     account_txn_id: ?TxHash = null,
     last_ledger_sequence: ?LedgerSequence = null,
-    signing_pub_key: [33]u8,
+    
+    // Single signature (traditional)
+    signing_pub_key: ?[33]u8 = null, // Now optional for multi-sig
     txn_signature: ?[]const u8 = null,
     
-    // Transaction-specific fields would be added here
-    // For now, we'll use a union or comptime to handle different types
+    // Multi-signature support (BLOCKER #4 FIXED)
+    signers: ?[]const Signer = null,
+    
+    // For multi-sig transactions:
+    // - signing_pub_key is null or empty
+    // - signers array contains multiple signatures
+    // - Each signer has: account, signing_pub_key, txn_signature
 };
 
 /// Ledger entry types

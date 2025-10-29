@@ -14,17 +14,12 @@ pub const Hash = struct {
         return result;
     }
     
-    /// RIPEMD-160 hash (Simplified implementation)
-    /// Note: This is a working but basic implementation
-    /// Production should use optimized version
+    /// RIPEMD-160 hash (REAL implementation)
+    /// BLOCKER #5: FIXED - Now using actual RIPEMD-160
     pub fn ripemd160(data: []const u8) [20]u8 {
-        // For now, use SHA-256 and truncate (not cryptographically equivalent but works for testing)
-        // TODO: Implement full RIPEMD-160 or use C library binding
-        var sha_hash: [32]u8 = undefined;
-        std.crypto.hash.sha2.Sha256.hash(data, &sha_hash, .{});
-        
+        const ripemd = @import("ripemd160.zig");
         var result: [20]u8 = undefined;
-        @memcpy(&result, sha_hash[0..20]);
+        ripemd.hash(data, &result);
         return result;
     }
     
