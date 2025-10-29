@@ -3,6 +3,7 @@ const types = @import("types.zig");
 const crypto = @import("crypto.zig");
 
 /// A ledger version - an immutable snapshot of all account states
+/// Updated to match real XRPL ledger format from testnet validation
 pub const Ledger = struct {
     sequence: types.LedgerSequence,
     hash: types.LedgerHash,
@@ -12,6 +13,8 @@ pub const Ledger = struct {
     total_coins: types.Drops,
     account_state_hash: [32]u8,
     transaction_hash: [32]u8,
+    close_flags: u32 = 0,  // Added from real testnet data
+    parent_close_time: i64 = 0,  // Added from real testnet data
     
     /// Genesis ledger - the first ledger in the chain
     pub fn genesis() Ledger {
