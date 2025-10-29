@@ -159,6 +159,6 @@ test "currency types" {
     try std.testing.expect(xrp == .xrp);
     
     const usd = Currency{ .standard = .{ 'U', 'S', 'D' } };
-    try std.testing.expect(usd == .standard);
+    try std.testing.expect(std.meta.activeTag(usd) == .standard);
 }
 

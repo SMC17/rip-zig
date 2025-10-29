@@ -45,11 +45,13 @@ pub const Node = struct {
         var ledger_manager = try ledger.LedgerManager.init(allocator);
         const node_storage = try storage.Storage.init(allocator, "data");
 
+        const consensus_engine = try consensus.ConsensusEngine.init(allocator, &ledger_manager);
+        
         return Node{
             .allocator = allocator,
             .id = id,
             .ledger_manager = ledger_manager,
-            .consensus_engine = try consensus.ConsensusEngine.init(allocator),
+            .consensus_engine = consensus_engine,
             .tx_processor = try transaction.TransactionProcessor.init(allocator),
             .rpc_server = rpc.RpcServer.init(allocator, 5005, &ledger_manager),
             .storage = node_storage,
