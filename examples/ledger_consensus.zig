@@ -1,7 +1,7 @@
 const std = @import("std");
-const ledger = @import("../src/ledger.zig");
-const consensus = @import("../src/consensus.zig");
-const types = @import("../src/types.zig");
+const ledger = @import("ledger.zig");
+const consensus = @import("consensus.zig");
+const types = @import("types.zig");
 
 /// Example: Simulating a consensus round and ledger closing
 pub fn main() !void {

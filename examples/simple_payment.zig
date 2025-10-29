@@ -1,8 +1,8 @@
 const std = @import("std");
-const types = @import("../src/types.zig");
-const crypto = @import("../src/crypto.zig");
-const transaction = @import("../src/transaction.zig");
-const ledger = @import("../src/ledger.zig");
+const types = @import("types.zig");
+const crypto = @import("crypto.zig");
+const transaction = @import("transaction.zig");
+const ledger = @import("ledger.zig");
 
 /// Example: Creating and signing a simple XRP payment
 pub fn main() !void {
