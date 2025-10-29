@@ -1,0 +1,13 @@
+{
+  "result": {
+    "error": "notImpl",
+    "error_code": 74,
+    "error_message": "Not implemented.",
+    "request": {
+      "binary": false,
+      "command": "tx",
+      "transaction": "latest"
+    },
+    "status": "error"
+  }
+}
