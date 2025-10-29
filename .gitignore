@@ -1,0 +1,30 @@
+# Zig build artifacts
+zig-cache/
+.zig-cache/
+zig-out/
+
+# Test data
+.test_data/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.rocksdb/
+
+# Log files
+*.log
+
+# Configuration files (may contain sensitive data)
+rippled.cfg
+validators.txt
+
