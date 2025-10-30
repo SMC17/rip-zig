@@ -195,11 +195,11 @@ test "merkle tree multiple leaves" {
     const allocator = std.testing.allocator;
     var tree = try MerkleTree.init(allocator);
     defer tree.deinit();
-    
+
     try tree.addLeaf("leaf 1");
     try tree.addLeaf("leaf 2");
     try tree.addLeaf("leaf 3");
-    
+
     // Note: getRoot() may have issues with allocation in current implementation
     // Temporarily skip to allow CI to pass
     // const root = tree.getRoot();
