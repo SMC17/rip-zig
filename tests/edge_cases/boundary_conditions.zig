@@ -14,7 +14,7 @@ test "Edge: Zero XRP amount" {
 test "Edge: Maximum XRP amount" {
     const max = types.Amount.fromXRP(types.MAX_XRP);
     try std.testing.expect(max.isXRP());
-    
+
     // Verify we can represent maximum supply
     try std.testing.expectEqual(@as(types.Drops, 100_000_000_000_000_000), types.MAX_XRP);
 }
@@ -43,7 +43,7 @@ test "Edge: Ledger sequence wraparound prevention" {
     const max_ledger: types.LedgerSequence = std.math.maxInt(u32);
     const ledgers_per_year = (365 * 24 * 60 * 60) / 4;
     const years = max_ledger / ledgers_per_year;
-    
+
     try std.testing.expect(years > 500); // Safe for centuries
 }
 
@@ -59,4 +59,3 @@ test "Edge: Maximum transaction set size" {
     const large_size: u32 = 5000;
     try std.testing.expect(large_size > 0);
 }
-

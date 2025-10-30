@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
         .root_module = main_module,
     });
     exe.linkLibC();
-    
+
     // Link secp256k1 library for ECDSA signature verification
     // Install: brew install secp256k1 (macOS) or apt-get install libsecp256k1-dev (Linux)
     exe.linkSystemLibrary("secp256k1");

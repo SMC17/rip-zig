@@ -13,13 +13,13 @@ test "RPC: account_info with valid account" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     // Create account
     const account = [_]u8{1} ** 20;
     try state.putAccount(.{
@@ -31,12 +31,12 @@ test "RPC: account_info with valid account" {
         .previous_txn_lgr_seq = 1,
         .sequence = 5,
     });
-    
+
     var methods = rpc_methods.RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const result = try methods.accountInfo(account);
     defer allocator.free(result);
-    
+
     // Should contain balance
     try std.testing.expect(std.mem.indexOf(u8, result, "1000000000") != null);
     // Should contain sequence
@@ -47,19 +47,19 @@ test "RPC: account_info with non-existent account" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var methods = rpc_methods.RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const missing_account = [_]u8{99} ** 20;
     const result = try methods.accountInfo(missing_account);
     defer allocator.free(result);
-    
+
     // Should return error
     try std.testing.expect(std.mem.indexOf(u8, result, "actNotFound") != null);
 }
@@ -68,18 +68,18 @@ test "RPC: server_info response format" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var methods = rpc_methods.RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const result = try methods.serverInfo(12345);
     defer allocator.free(result);
-    
+
     // Verify required fields
     try std.testing.expect(std.mem.indexOf(u8, result, "build_version") != null);
     try std.testing.expect(std.mem.indexOf(u8, result, "complete_ledgers") != null);
@@ -90,18 +90,18 @@ test "RPC: fee method" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var methods = rpc_methods.RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const result = try methods.fee();
     defer allocator.free(result);
-    
+
     // Should contain fee levels
     try std.testing.expect(std.mem.indexOf(u8, result, "base_fee") != null);
     try std.testing.expect(std.mem.indexOf(u8, result, "median_fee") != null);
@@ -111,18 +111,17 @@ test "RPC: ledger_current" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var methods = rpc_methods.RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const result = try methods.ledgerCurrent();
     defer allocator.free(result);
-    
+
     try std.testing.expect(std.mem.indexOf(u8, result, "ledger_current_index") != null);
 }
-
