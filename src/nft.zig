@@ -6,7 +6,7 @@ pub const NFTManager = struct {
     allocator: std.mem.Allocator,
     nfts: std.ArrayList(NFToken),
     offers: std.ArrayList(NFTOffer),
-    
+
     pub fn init(allocator: std.mem.Allocator) NFTManager {
         return NFTManager{
             .allocator = allocator,
@@ -14,7 +14,7 @@ pub const NFTManager = struct {
             .offers = std.ArrayList(NFTOffer).initCapacity(allocator, 0) catch unreachable,
         };
     }
-    
+
     pub fn deinit(self: *NFTManager) void {
         for (self.nfts.items) |*nft| {
             if (nft.uri) |uri| {
@@ -24,15 +24,15 @@ pub const NFTManager = struct {
         self.nfts.deinit(self.allocator);
         self.offers.deinit(self.allocator);
     }
-    
+
     /// Mint a new NFT
     pub fn mintNFT(self: *NFTManager, nft: NFToken) !void {
         // Generate NFT ID from issuer + sequence + taxon
         // TODO: Use proper NFT ID algorithm
-        
+
         try self.nfts.append(self.allocator, nft);
     }
-    
+
     /// Burn an NFT
     pub fn burnNFT(self: *NFTManager, nft_id: [32]u8, owner: types.AccountID) !void {
         for (self.nfts.items, 0..) |nft, i| {
@@ -40,18 +40,18 @@ pub const NFTManager = struct {
                 if (!std.mem.eql(u8, &nft.owner, &owner)) {
                     return error.NotNFTOwner;
                 }
-                
+
                 if (nft.uri) |uri| {
                     self.allocator.free(uri);
                 }
-                
+
                 _ = self.nfts.swapRemove(i);
                 return;
             }
         }
         return error.NFTNotFound;
     }
-    
+
     /// Create an NFT offer
     pub fn createOffer(self: *NFTManager, offer: NFTOffer) !void {
         // Validate NFT exists
@@ -62,12 +62,12 @@ pub const NFTManager = struct {
                 break;
             }
         }
-        
+
         if (!nft_exists) return error.NFTNotFound;
-        
+
         try self.offers.append(self.allocator, offer);
     }
-    
+
     /// Cancel an NFT offer - WEEK 3 DAY 19
     pub fn cancelOffer(self: *NFTManager, offer_id: [32]u8) !void {
         for (self.offers.items, 0..) |offer, idx| {
@@ -78,7 +78,7 @@ pub const NFTManager = struct {
         }
         return error.OfferNotFound;
     }
-    
+
     /// Accept an NFT offer
     pub fn acceptOffer(self: *NFTManager, offer_id: [32]u8) !void {
         for (self.offers.items, 0..) |offer, i| {
@@ -94,7 +94,7 @@ pub const NFTManager = struct {
                         break;
                     }
                 }
-                
+
                 _ = self.offers.swapRemove(i);
                 return;
             }
@@ -142,7 +142,7 @@ pub const NFTokenMintTransaction = struct {
     transfer_fee: u16 = 0,
     flags: NFTFlags = .{},
     uri: ?[]const u8 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         taxon: u32,
@@ -161,13 +161,13 @@ pub const NFTokenMintTransaction = struct {
             .taxon = taxon,
         };
     }
-    
+
     pub fn validate(self: *const NFTokenMintTransaction) !void {
         // Transfer fee cannot exceed 50%
         if (self.transfer_fee > 50000) {
             return error.TransferFeeTooHigh;
         }
-        
+
         // URI length limit
         if (self.uri) |uri| {
             if (uri.len > 512) return error.URITooLong;
@@ -179,7 +179,7 @@ pub const NFTokenMintTransaction = struct {
 pub const NFTokenBurnTransaction = struct {
     base: types.Transaction,
     nft_id: [32]u8,
-    
+
     pub fn create(
         account: types.AccountID,
         nft_id: [32]u8,
@@ -208,7 +208,7 @@ pub const NFTokenCreateOfferTransaction = struct {
     is_sell_offer: bool,
     destination: ?types.AccountID = null,
     expiration: ?i64 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         nft_id: [32]u8,
@@ -237,7 +237,7 @@ pub const NFTokenCreateOfferTransaction = struct {
 pub const NFTokenCancelOfferTransaction = struct {
     base: types.Transaction,
     offer_id: [32]u8, // Hash of the offer to cancel
-    
+
     pub fn create(
         account: types.AccountID,
         offer_id: [32]u8,
@@ -256,7 +256,7 @@ pub const NFTokenCancelOfferTransaction = struct {
             .offer_id = offer_id,
         };
     }
-    
+
     pub fn validate(self: *const NFTokenCancelOfferTransaction) !void {
         // Basic validation
         if (self.base.fee < types.MIN_TX_FEE) return error.InsufficientFee;
@@ -269,7 +269,7 @@ pub const NFTokenAcceptOfferTransaction = struct {
     base: types.Transaction,
     nft_offer_id: [32]u8, // Hash of the offer to accept
     broker_fee: ?types.Amount = null, // Optional broker fee
-    
+
     pub fn create(
         account: types.AccountID,
         nft_offer_id: [32]u8,
@@ -290,7 +290,7 @@ pub const NFTokenAcceptOfferTransaction = struct {
             .broker_fee = broker_fee,
         };
     }
-    
+
     pub fn validate(self: *const NFTokenAcceptOfferTransaction) !void {
         // Basic validation
         if (self.base.fee < types.MIN_TX_FEE) return error.InsufficientFee;
@@ -302,13 +302,13 @@ test "nft manager" {
     const allocator = std.testing.allocator;
     var manager = NFTManager.init(allocator);
     defer manager.deinit();
-    
+
     try std.testing.expectEqual(@as(usize, 0), manager.nfts.items.len);
 }
 
 test "nft mint transaction" {
     const account = [_]u8{1} ** 20;
-    
+
     const tx = NFTokenMintTransaction.create(
         account,
         12345, // taxon
@@ -316,7 +316,7 @@ test "nft mint transaction" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.nftoken_mint, tx.base.tx_type);
 }
@@ -324,7 +324,7 @@ test "nft mint transaction" {
 test "nft cancel offer transaction" {
     const account = [_]u8{1} ** 20;
     const offer_id = [_]u8{0xAA} ** 32;
-    
+
     const tx = NFTokenCancelOfferTransaction.create(
         account,
         offer_id,
@@ -332,7 +332,7 @@ test "nft cancel offer transaction" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.nftoken_cancel_offer, tx.base.tx_type);
 }
@@ -340,7 +340,7 @@ test "nft cancel offer transaction" {
 test "nft accept offer transaction" {
     const account = [_]u8{1} ** 20;
     const offer_id = [_]u8{0xBB} ** 32;
-    
+
     const tx = NFTokenAcceptOfferTransaction.create(
         account,
         offer_id,
@@ -349,14 +349,14 @@ test "nft accept offer transaction" {
         [_]u8{0} ** 33,
         null, // no broker fee
     );
-    
+
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.nftoken_accept_offer, tx.base.tx_type);
 }
 
 test "transfer fee validation" {
     const account = [_]u8{1} ** 20;
-    
+
     var tx = NFTokenMintTransaction.create(
         account,
         12345,
@@ -364,13 +364,12 @@ test "transfer fee validation" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     // Valid transfer fee
     tx.transfer_fee = 10000; // 10%
     try tx.validate();
-    
+
     // Invalid transfer fee
     tx.transfer_fee = 60000; // 60% - too high!
     try std.testing.expectError(error.TransferFeeTooHigh, tx.validate());
 }
-

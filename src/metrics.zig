@@ -5,7 +5,7 @@ const types = @import("types.zig");
 pub const Metrics = struct {
     allocator: std.mem.Allocator,
     start_time: i64,
-    
+
     // Counters
     transactions_processed: std.atomic.Value(u64),
     ledgers_closed: std.atomic.Value(u64),
@@ -13,15 +13,15 @@ pub const Metrics = struct {
     rpc_requests: std.atomic.Value(u64),
     network_messages_sent: std.atomic.Value(u64),
     network_messages_received: std.atomic.Value(u64),
-    
+
     // Gauges
     connected_peers: std.atomic.Value(u32),
     pending_transactions: std.atomic.Value(u32),
-    
+
     // Histograms (simplified)
     consensus_durations: std.ArrayList(u64),
     mutex: std.Thread.Mutex,
-    
+
     pub fn init(allocator: std.mem.Allocator) !Metrics {
         return Metrics{
             .allocator = allocator,
@@ -38,79 +38,79 @@ pub const Metrics = struct {
             .mutex = .{},
         };
     }
-    
+
     pub fn deinit(self: *Metrics) void {
         self.consensus_durations.deinit(self.allocator);
     }
-    
+
     /// Increment transaction counter
     pub fn incTransactions(self: *Metrics) void {
         _ = self.transactions_processed.fetchAdd(1, .monotonic);
     }
-    
+
     /// Increment ledger counter
     pub fn incLedgers(self: *Metrics) void {
         _ = self.ledgers_closed.fetchAdd(1, .monotonic);
     }
-    
+
     /// Increment consensus round counter
     pub fn incConsensusRounds(self: *Metrics) void {
         _ = self.consensus_rounds.fetchAdd(1, .monotonic);
     }
-    
+
     /// Increment RPC request counter
     pub fn incRpcRequests(self: *Metrics) void {
         _ = self.rpc_requests.fetchAdd(1, .monotonic);
     }
-    
+
     /// Record consensus duration
     pub fn recordConsensusDuration(self: *Metrics, duration_ms: u64) !void {
         self.mutex.lock();
         defer self.mutex.unlock();
-        
+
         try self.consensus_durations.append(self.allocator, duration_ms);
-        
+
         // Keep only last 100
         if (self.consensus_durations.items.len > 100) {
             _ = self.consensus_durations.orderedRemove(0);
         }
     }
-    
+
     /// Set connected peers gauge
     pub fn setPeers(self: *Metrics, count: u32) void {
         self.connected_peers.store(count, .monotonic);
     }
-    
+
     /// Set pending transactions gauge
     pub fn setPendingTxs(self: *Metrics, count: u32) void {
         self.pending_transactions.store(count, .monotonic);
     }
-    
+
     /// Get uptime in seconds
     pub fn getUptime(self: *const Metrics) i64 {
         return std.time.timestamp() - self.start_time;
     }
-    
+
     /// Get average consensus duration
     pub fn getAverageConsensusDuration(self: *Metrics) f64 {
         self.mutex.lock();
         defer self.mutex.unlock();
-        
+
         if (self.consensus_durations.items.len == 0) return 0.0;
-        
+
         var sum: u64 = 0;
         for (self.consensus_durations.items) |duration| {
             sum += duration;
         }
-        
+
         return @as(f64, @floatFromInt(sum)) / @as(f64, @floatFromInt(self.consensus_durations.items.len));
     }
-    
+
     /// Export metrics in Prometheus format
     pub fn exportPrometheus(self: *Metrics, allocator: std.mem.Allocator) ![]u8 {
         const uptime = self.getUptime();
         const avg_consensus = self.getAverageConsensusDuration();
-        
+
         return try std.fmt.allocPrint(allocator,
             \\# HELP rippled_uptime_seconds Node uptime in seconds
             \\# TYPE rippled_uptime_seconds gauge
@@ -155,12 +155,12 @@ pub const Metrics = struct {
             avg_consensus,
         });
     }
-    
+
     /// Get metrics as JSON
     pub fn toJson(self: *Metrics, allocator: std.mem.Allocator) ![]u8 {
         const uptime = self.getUptime();
         const avg_consensus = self.getAverageConsensusDuration();
-        
+
         return try std.fmt.allocPrint(allocator,
             \\{{
             \\  "uptime_seconds": {d},
@@ -189,7 +189,7 @@ test "metrics initialization" {
     const allocator = std.testing.allocator;
     var metrics = try Metrics.init(allocator);
     defer metrics.deinit();
-    
+
     try std.testing.expectEqual(@as(u64, 0), metrics.transactions_processed.load(.monotonic));
 }
 
@@ -197,11 +197,11 @@ test "metrics counters" {
     const allocator = std.testing.allocator;
     var metrics = try Metrics.init(allocator);
     defer metrics.deinit();
-    
+
     metrics.incTransactions();
     metrics.incTransactions();
     metrics.incLedgers();
-    
+
     try std.testing.expectEqual(@as(u64, 2), metrics.transactions_processed.load(.monotonic));
     try std.testing.expectEqual(@as(u64, 1), metrics.ledgers_closed.load(.monotonic));
 }
@@ -210,12 +210,11 @@ test "consensus duration tracking" {
     const allocator = std.testing.allocator;
     var metrics = try Metrics.init(allocator);
     defer metrics.deinit();
-    
+
     try metrics.recordConsensusDuration(4500);
     try metrics.recordConsensusDuration(5000);
     try metrics.recordConsensusDuration(4800);
-    
+
     const avg = metrics.getAverageConsensusDuration();
     try std.testing.expect(avg > 4700 and avg < 4900);
 }
-

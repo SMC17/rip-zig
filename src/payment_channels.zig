@@ -6,27 +6,27 @@ const crypto = @import("crypto.zig");
 pub const PaymentChannelManager = struct {
     allocator: std.mem.Allocator,
     channels: std.ArrayList(PaymentChannel),
-    
+
     pub fn init(allocator: std.mem.Allocator) PaymentChannelManager {
         return PaymentChannelManager{
             .allocator = allocator,
             .channels = std.ArrayList(PaymentChannel).initCapacity(allocator, 0) catch unreachable,
         };
     }
-    
+
     pub fn deinit(self: *PaymentChannelManager) void {
         self.channels.deinit(self.allocator);
     }
-    
+
     /// Create a new payment channel
     pub fn createChannel(self: *PaymentChannelManager, channel: PaymentChannel) !void {
         // Validate channel
         if (channel.amount == 0) return error.ZeroAmount;
         if (channel.settle_delay > 86400 * 30) return error.SettleDelayTooLarge; // Max 30 days
-        
+
         try self.channels.append(self.allocator, channel);
     }
-    
+
     /// Fund an existing channel
     pub fn fundChannel(self: *PaymentChannelManager, channel_id: [32]u8, amount: types.Drops) !void {
         for (self.channels.items) |*channel| {
@@ -37,7 +37,7 @@ pub const PaymentChannelManager = struct {
         }
         return error.ChannelNotFound;
     }
-    
+
     /// Claim from a channel
     pub fn claimChannel(
         self: *PaymentChannelManager,
@@ -50,20 +50,20 @@ pub const PaymentChannelManager = struct {
                 // Verify signature
                 // TODO: Implement signature verification against channel public key
                 _ = signature;
-                
+
                 // Check claim amount
                 if (balance > channel.amount) return error.InsufficientChannelBalance;
                 if (balance <= channel.balance) return error.BalanceNotIncreased;
-                
+
                 const claim_amount = balance - channel.balance;
-                
+
                 // Check if closing
                 if (balance == channel.amount) {
                     _ = self.channels.swapRemove(i);
                 } else {
                     self.channels.items[i].balance = balance;
                 }
-                
+
                 return claim_amount;
             }
         }
@@ -94,7 +94,7 @@ pub const PaymentChannelCreateTransaction = struct {
     public_key: [33]u8,
     cancel_after: ?i64 = null,
     destination_tag: ?u32 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         destination: types.AccountID,
@@ -119,7 +119,7 @@ pub const PaymentChannelCreateTransaction = struct {
             .public_key = public_key,
         };
     }
-    
+
     pub fn validate(self: *const PaymentChannelCreateTransaction) !void {
         if (self.amount == 0) return error.ZeroAmount;
         if (self.settle_delay == 0) return error.InvalidSettleDelay;
@@ -133,7 +133,7 @@ pub const PaymentChannelFundTransaction = struct {
     channel: [32]u8,
     amount: types.Drops,
     expiration: ?i64 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         channel: [32]u8,
@@ -164,7 +164,7 @@ pub const PaymentChannelClaimTransaction = struct {
     amount: ?types.Drops = null,
     signature: ?[]const u8 = null,
     public_key: ?[33]u8 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         channel: [32]u8,
@@ -189,7 +189,7 @@ test "payment channel creation" {
     const allocator = std.testing.allocator;
     var manager = PaymentChannelManager.init(allocator);
     defer manager.deinit();
-    
+
     const channel = PaymentChannel{
         .channel_id = [_]u8{1} ** 32,
         .account = [_]u8{1} ** 20,
@@ -199,7 +199,7 @@ test "payment channel creation" {
         .settle_delay = 3600,
         .public_key = [_]u8{0} ** 33,
     };
-    
+
     try manager.createChannel(channel);
     try std.testing.expectEqual(@as(usize, 1), manager.channels.items.len);
 }
@@ -208,7 +208,7 @@ test "payment channel transaction" {
     const account = [_]u8{1} ** 20;
     const destination = [_]u8{2} ** 20;
     const public_key = [_]u8{0} ** 33;
-    
+
     const tx = PaymentChannelCreateTransaction.create(
         account,
         destination,
@@ -219,8 +219,7 @@ test "payment channel transaction" {
         1,
         public_key,
     );
-    
+
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.payment_channel_create, tx.base.tx_type);
 }
-

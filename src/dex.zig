@@ -6,32 +6,32 @@ const ledger = @import("ledger.zig");
 pub const OrderBook = struct {
     allocator: std.mem.Allocator,
     offers: std.ArrayList(Offer),
-    
+
     pub fn init(allocator: std.mem.Allocator) OrderBook {
         return OrderBook{
             .allocator = allocator,
             .offers = std.ArrayList(Offer).initCapacity(allocator, 0) catch unreachable,
         };
     }
-    
+
     pub fn deinit(self: *OrderBook) void {
         self.offers.deinit(self.allocator);
     }
-    
+
     /// Create a new offer
     pub fn createOffer(self: *OrderBook, offer: Offer) !void {
         // Validate offer
         if (offer.taker_pays.isXRP() and offer.taker_gets.isXRP()) {
             return error.XRPToXRPOffer; // Can't exchange XRP for XRP
         }
-        
+
         // Add to order book
         try self.offers.append(self.allocator, offer);
-        
+
         // Try to cross offers
         try self.crossOffers();
     }
-    
+
     /// Cancel an offer
     pub fn cancelOffer(self: *OrderBook, sequence: u32, account: types.AccountID) !void {
         var i: usize = 0;
@@ -45,14 +45,14 @@ pub const OrderBook = struct {
         }
         return error.OfferNotFound;
     }
-    
+
     /// Cross offers (match buy and sell orders)
     fn crossOffers(self: *OrderBook) !void {
         // Simplified offer crossing
         // In production, this would match orders by price and execute trades
         _ = self;
     }
-    
+
     /// Get offers for an account
     pub fn getOffersForAccount(self: *const OrderBook, account: types.AccountID) []const Offer {
         _ = account;
@@ -68,7 +68,7 @@ pub const Offer = struct {
     taker_gets: types.Amount,
     expiration: ?i64 = null,
     offer_sequence: u32,
-    
+
     /// Calculate the exchange rate
     pub fn getRate(self: Offer) f64 {
         // Simplified rate calculation
@@ -84,7 +84,7 @@ pub const OfferCreateTransaction = struct {
     taker_gets: types.Amount,
     expiration: ?i64 = null,
     offer_sequence: ?u32 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         taker_pays: types.Amount,
@@ -105,20 +105,20 @@ pub const OfferCreateTransaction = struct {
             .taker_gets = taker_gets,
         };
     }
-    
+
     /// Validate the offer
     pub fn validate(self: *const OfferCreateTransaction) !void {
         // Can't exchange XRP for XRP
         if (self.taker_pays.isXRP() and self.taker_gets.isXRP()) {
             return error.XRPToXRPOffer;
         }
-        
+
         // Amounts must be positive
         switch (self.taker_pays) {
             .xrp => |drops| if (drops == 0) return error.ZeroAmount,
             .iou => |iou| if (iou.value == 0) return error.ZeroAmount,
         }
-        
+
         switch (self.taker_gets) {
             .xrp => |drops| if (drops == 0) return error.ZeroAmount,
             .iou => |iou| if (iou.value == 0) return error.ZeroAmount,
@@ -130,7 +130,7 @@ pub const OfferCreateTransaction = struct {
 pub const OfferCancelTransaction = struct {
     base: types.Transaction,
     offer_sequence: u32,
-    
+
     pub fn create(
         account: types.AccountID,
         offer_sequence: u32,
@@ -155,7 +155,7 @@ test "order book creation" {
     const allocator = std.testing.allocator;
     var book = OrderBook.init(allocator);
     defer book.deinit();
-    
+
     try std.testing.expectEqual(@as(usize, 0), book.offers.items.len);
 }
 
@@ -168,7 +168,7 @@ test "offer create transaction" {
         .exponent = 0,
         .issuer = [_]u8{2} ** 20,
     } };
-    
+
     const offer = OfferCreateTransaction.create(
         account,
         taker_pays,
@@ -177,7 +177,7 @@ test "offer create transaction" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try offer.validate();
     try std.testing.expectEqual(types.TransactionType.offer_create, offer.base.tx_type);
 }
@@ -186,7 +186,7 @@ test "offer validation prevents XRP to XRP" {
     const account = [_]u8{1} ** 20;
     const taker_pays = types.Amount.fromXRP(100 * types.XRP);
     const taker_gets = types.Amount.fromXRP(50 * types.XRP); // Invalid: XRP to XRP
-    
+
     const offer = OfferCreateTransaction.create(
         account,
         taker_pays,
@@ -195,7 +195,6 @@ test "offer validation prevents XRP to XRP" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try std.testing.expectError(error.XRPToXRPOffer, offer.validate());
 }
-

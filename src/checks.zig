@@ -5,28 +5,28 @@ const types = @import("types.zig");
 pub const CheckManager = struct {
     allocator: std.mem.Allocator,
     checks: std.ArrayList(Check),
-    
+
     pub fn init(allocator: std.mem.Allocator) CheckManager {
         return CheckManager{
             .allocator = allocator,
             .checks = std.ArrayList(Check).initCapacity(allocator, 0) catch unreachable,
         };
     }
-    
+
     pub fn deinit(self: *CheckManager) void {
         self.checks.deinit(self.allocator);
     }
-    
+
     /// Create a new check
     pub fn createCheck(self: *CheckManager, check: Check) !void {
         // Validate
         if (std.mem.eql(u8, &check.sender, &check.destination)) {
             return error.CannotCheckSelf;
         }
-        
+
         try self.checks.append(self.allocator, check);
     }
-    
+
     /// Cash a check
     pub fn cashCheck(self: *CheckManager, check_id: [32]u8, amount: ?types.Amount) !types.Amount {
         for (self.checks.items, 0..) |check, i| {
@@ -48,7 +48,7 @@ pub const CheckManager = struct {
                     }
                     break :blk amt;
                 } else check.send_max;
-                
+
                 // Check expiration
                 if (check.expiration) |exp| {
                     if (std.time.timestamp() > exp) {
@@ -56,14 +56,14 @@ pub const CheckManager = struct {
                         return error.CheckExpired;
                     }
                 }
-                
+
                 _ = self.checks.swapRemove(i);
                 return cash_amount;
             }
         }
         return error.CheckNotFound;
     }
-    
+
     /// Cancel a check
     pub fn cancelCheck(self: *CheckManager, check_id: [32]u8, account: types.AccountID) !void {
         for (self.checks.items, 0..) |check, i| {
@@ -71,11 +71,11 @@ pub const CheckManager = struct {
                 // Only sender or destination can cancel
                 const is_sender = std.mem.eql(u8, &check.sender, &account);
                 const is_dest = std.mem.eql(u8, &check.destination, &account);
-                
+
                 if (!is_sender and !is_dest) {
                     return error.CannotCancelCheck;
                 }
-                
+
                 _ = self.checks.swapRemove(i);
                 return;
             }
@@ -104,7 +104,7 @@ pub const CheckCreateTransaction = struct {
     destination_tag: ?u32 = null,
     expiration: ?i64 = null,
     invoice_id: ?[32]u8 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         destination: types.AccountID,
@@ -125,13 +125,13 @@ pub const CheckCreateTransaction = struct {
             .send_max = send_max,
         };
     }
-    
+
     pub fn validate(self: *const CheckCreateTransaction) !void {
         // Cannot send check to self
         if (std.mem.eql(u8, &self.base.account, &self.destination)) {
             return error.CannotCheckSelf;
         }
-        
+
         // Validate amount
         switch (self.send_max) {
             .xrp => |drops| if (drops == 0) return error.ZeroAmount,
@@ -146,7 +146,7 @@ pub const CheckCashTransaction = struct {
     check_id: [32]u8,
     amount: ?types.Amount = null,
     deliver_min: ?types.Amount = null,
-    
+
     pub fn create(
         account: types.AccountID,
         check_id: [32]u8,
@@ -165,13 +165,13 @@ pub const CheckCashTransaction = struct {
             .check_id = check_id,
         };
     }
-    
+
     pub fn validate(self: *const CheckCashTransaction) !void {
         // Must specify either amount or deliver_min
         if (self.amount == null and self.deliver_min == null) {
             return error.MissingAmountOrDeliverMin;
         }
-        
+
         // Cannot specify both
         if (self.amount != null and self.deliver_min != null) {
             return error.CannotSpecifyBoth;
@@ -183,7 +183,7 @@ pub const CheckCashTransaction = struct {
 pub const CheckCancelTransaction = struct {
     base: types.Transaction,
     check_id: [32]u8,
-    
+
     pub fn create(
         account: types.AccountID,
         check_id: [32]u8,
@@ -208,7 +208,7 @@ test "check manager" {
     const allocator = std.testing.allocator;
     var manager = CheckManager.init(allocator);
     defer manager.deinit();
-    
+
     const check = Check{
         .check_id = [_]u8{1} ** 32,
         .sender = [_]u8{1} ** 20,
@@ -216,7 +216,7 @@ test "check manager" {
         .send_max = types.Amount.fromXRP(1000 * types.XRP),
         .sequence = 1,
     };
-    
+
     try manager.createCheck(check);
     try std.testing.expectEqual(@as(usize, 1), manager.checks.items.len);
 }
@@ -225,7 +225,7 @@ test "check create transaction" {
     const account = [_]u8{1} ** 20;
     const destination = [_]u8{2} ** 20;
     const send_max = types.Amount.fromXRP(500 * types.XRP);
-    
+
     const tx = CheckCreateTransaction.create(
         account,
         destination,
@@ -234,7 +234,7 @@ test "check create transaction" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.check_create, tx.base.tx_type);
 }
@@ -242,7 +242,7 @@ test "check create transaction" {
 test "check validation prevents self-send" {
     const account = [_]u8{1} ** 20;
     const send_max = types.Amount.fromXRP(500 * types.XRP);
-    
+
     const tx = CheckCreateTransaction.create(
         account,
         account, // Same as sender!
@@ -251,7 +251,6 @@ test "check validation prevents self-send" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try std.testing.expectError(error.CannotCheckSelf, tx.validate());
 }
-

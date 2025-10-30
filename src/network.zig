@@ -7,7 +7,7 @@ pub const Network = struct {
     listen_port: u16,
     server: ?std.net.Server,
     running: std.atomic.Value(bool),
-    
+
     pub fn init(allocator: std.mem.Allocator, port: u16) !Network {
         return Network{
             .allocator = allocator,
@@ -17,26 +17,26 @@ pub const Network = struct {
             .running = std.atomic.Value(bool).init(false),
         };
     }
-    
+
     pub fn deinit(self: *Network) void {
         self.stop();
         self.peers.deinit(self.allocator);
     }
-    
+
     /// Start listening for peer connections
     pub fn listen(self: *Network) !void {
         const address = try std.net.Address.parseIp("127.0.0.1", self.listen_port);
-        
+
         var server = try address.listen(.{
             .reuse_address = true,
             .reuse_port = true,
         });
-        
+
         self.server = server;
         self.running.store(true, .seq_cst);
-        
+
         std.debug.print("Network listening on port {d}\n", .{self.listen_port});
-        
+
         // Accept connections in a loop
         while (self.running.load(.seq_cst)) {
             // Set a timeout so we can check running flag
@@ -45,13 +45,13 @@ pub const Network = struct {
                 error.ConnectionAborted => continue,
                 else => return err,
             };
-            
+
             // Handle connection (for now, just log and close)
             std.debug.print("Accepted connection from {}\n", .{connection.address});
             connection.stream.close();
         }
     }
-    
+
     /// Stop the network listener
     pub fn stop(self: *Network) void {
         self.running.store(false, .seq_cst);
@@ -60,12 +60,12 @@ pub const Network = struct {
             self.server = null;
         }
     }
-    
+
     /// Connect to a peer
     pub fn connectPeer(self: *Network, address: []const u8, port: u16) !*Peer {
         const addr = try std.net.Address.parseIp(address, port);
         const stream = try std.net.tcpConnectToAddress(addr);
-        
+
         const peer = Peer{
             .node_id = [_]u8{0} ** 32,
             .address = try self.allocator.dupe(u8, address),
@@ -75,13 +75,13 @@ pub const Network = struct {
             .stream = stream,
             .allocator = self.allocator,
         };
-        
+
         try self.peers.append(self.allocator, peer);
         std.debug.print("Connected to peer {}:{d}\n", .{ std.fmt.fmtSliceHexLower(address[0..@min(8, address.len)]), port });
-        
+
         return &self.peers.items[self.peers.items.len - 1];
     }
-    
+
     /// Broadcast a message to all peers
     pub fn broadcast(self: *Network, message: Message) !void {
         for (self.peers.items) |*peer| {
@@ -91,7 +91,7 @@ pub const Network = struct {
             };
         }
     }
-    
+
     /// Get connected peer count
     pub fn getPeerCount(self: *const Network) usize {
         var count: usize = 0;
@@ -111,34 +111,34 @@ pub const Peer = struct {
     connected: bool,
     stream: std.net.Stream,
     allocator: std.mem.Allocator,
-    
+
     pub fn deinit(self: *Peer) void {
         self.stream.close();
         self.allocator.free(self.address);
     }
-    
+
     /// Send a message to this peer
     pub fn send(self: *Peer, message: Message) !void {
         if (!self.connected) return error.NotConnected;
-        
+
         const serialized = try message.serialize(self.allocator);
         defer self.allocator.free(serialized);
-        
+
         _ = try self.stream.write(serialized);
     }
-    
+
     /// Receive a message from this peer
     pub fn receive(self: *Peer, allocator: std.mem.Allocator) !Message {
         if (!self.connected) return error.NotConnected;
-        
+
         var buffer: [4096]u8 = undefined;
         const bytes_read = try self.stream.read(&buffer);
-        
+
         if (bytes_read == 0) {
             self.connected = false;
             return error.ConnectionClosed;
         }
-        
+
         return try Message.deserialize(buffer[0..bytes_read], allocator);
     }
 };
@@ -160,7 +160,7 @@ pub const MessageType = enum(u8) {
 pub const Message = struct {
     msg_type: MessageType,
     payload: []const u8,
-    
+
     /// Create a ping message
     pub fn ping() Message {
         return Message{
@@ -168,7 +168,7 @@ pub const Message = struct {
             .payload = &[_]u8{},
         };
     }
-    
+
     /// Create a pong message
     pub fn pong() Message {
         return Message{
@@ -176,31 +176,31 @@ pub const Message = struct {
             .payload = &[_]u8{},
         };
     }
-    
+
     /// Serialize message for transmission
     pub fn serialize(self: Message, allocator: std.mem.Allocator) ![]u8 {
         // Simple format: [type:1byte][length:4bytes][payload]
         const total_len = 1 + 4 + self.payload.len;
         var buffer = try allocator.alloc(u8, total_len);
-        
+
         buffer[0] = @intFromEnum(self.msg_type);
         std.mem.writeInt(u32, buffer[1..5], @intCast(self.payload.len), .big);
         @memcpy(buffer[5..], self.payload);
-        
+
         return buffer;
     }
-    
+
     /// Deserialize message from bytes
     pub fn deserialize(data: []const u8, allocator: std.mem.Allocator) !Message {
         if (data.len < 5) return error.InvalidMessage;
-        
+
         const msg_type = std.meta.intToEnum(MessageType, data[0]) catch return error.InvalidMessageType;
         const payload_len = std.mem.readInt(u32, data[1..5][0..4], .big);
-        
+
         if (data.len < 5 + payload_len) return error.TruncatedMessage;
-        
+
         const payload = try allocator.dupe(u8, data[5 .. 5 + payload_len]);
-        
+
         return Message{
             .msg_type = msg_type,
             .payload = payload,
@@ -212,7 +212,7 @@ test "network initialization" {
     const allocator = std.testing.allocator;
     var network = try Network.init(allocator, 51235);
     defer network.deinit();
-    
+
     try std.testing.expectEqual(@as(u16, 51235), network.listen_port);
     try std.testing.expectEqual(@as(usize, 0), network.peers.items.len);
     try std.testing.expect(!network.running.load(.seq_cst));
@@ -220,29 +220,29 @@ test "network initialization" {
 
 test "message serialization" {
     const allocator = std.testing.allocator;
-    
+
     const msg = Message.ping();
     const serialized = try msg.serialize(allocator);
     defer allocator.free(serialized);
-    
+
     try std.testing.expectEqual(@as(u8, 1), serialized[0]); // ping = 1
     try std.testing.expectEqual(@as(usize, 5), serialized.len); // 1 + 4 + 0
 }
 
 test "message round-trip" {
     const allocator = std.testing.allocator;
-    
+
     const original = Message{
         .msg_type = .transaction,
         .payload = "test payload",
     };
-    
+
     const serialized = try original.serialize(allocator);
     defer allocator.free(serialized);
-    
+
     const deserialized = try Message.deserialize(serialized, allocator);
     defer allocator.free(deserialized.payload);
-    
+
     try std.testing.expectEqual(original.msg_type, deserialized.msg_type);
     try std.testing.expectEqualStrings(original.payload, deserialized.payload);
 }

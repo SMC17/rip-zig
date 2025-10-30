@@ -7,42 +7,42 @@ const ledger = @import("ledger.zig");
 pub const TransactionProcessor = struct {
     allocator: std.mem.Allocator,
     pending_transactions: std.ArrayList(types.Transaction),
-    
+
     pub fn init(allocator: std.mem.Allocator) !TransactionProcessor {
         return TransactionProcessor{
             .allocator = allocator,
             .pending_transactions = try std.ArrayList(types.Transaction).initCapacity(allocator, 0),
         };
     }
-    
+
     pub fn deinit(self: *TransactionProcessor) void {
         self.pending_transactions.deinit(self.allocator);
     }
-    
+
     /// Validate a transaction
     pub fn validateTransaction(self: *const TransactionProcessor, tx: *const types.Transaction, account_state: *const ledger.AccountState) !types.TransactionResult {
         _ = self;
-        
+
         // Check if account exists
         const account = account_state.getAccount(tx.account) orelse {
             return .tel_local_error;
         };
-        
+
         // Validate fee
         if (tx.fee < types.MIN_TX_FEE) {
             return .tem_malformed;
         }
-        
+
         // Check if account has enough balance to pay the fee
         if (account.balance < tx.fee) {
             return .tec_claim;
         }
-        
+
         // Validate sequence number
         if (tx.sequence != account.sequence) {
             return .ter_retry;
         }
-        
+
         // Transaction-specific validation would go here
         switch (tx.tx_type) {
             .payment => {
@@ -55,10 +55,10 @@ pub const TransactionProcessor = struct {
                 // Other transaction types
             },
         }
-        
+
         return .tes_success;
     }
-    
+
     /// Submit a transaction to the pending queue
     pub fn submitTransaction(self: *TransactionProcessor, tx: types.Transaction) !void {
         try self.pending_transactions.append(self.allocator, tx);
@@ -67,12 +67,12 @@ pub const TransactionProcessor = struct {
             tx.fee,
         });
     }
-    
+
     /// Get pending transactions for the next ledger
     pub fn getPendingTransactions(self: *const TransactionProcessor) []const types.Transaction {
         return self.pending_transactions.items;
     }
-    
+
     /// Clear pending transactions (after ledger close)
     pub fn clearPending(self: *TransactionProcessor) void {
         self.pending_transactions.clearRetainingCapacity();
@@ -86,7 +86,7 @@ pub const PaymentTransaction = struct {
     amount: types.Amount,
     destination_tag: ?u32 = null,
     send_max: ?types.Amount = null,
-    
+
     /// Create a new payment transaction
     pub fn create(
         account: types.AccountID,
@@ -108,30 +108,30 @@ pub const PaymentTransaction = struct {
             .amount = amount,
         };
     }
-    
+
     /// Sign the payment transaction
     pub fn sign(self: *PaymentTransaction, key_pair: crypto.KeyPair, allocator: std.mem.Allocator) !void {
         // Serialize the transaction for signing
         const tx_data = try self.serialize(allocator);
         defer allocator.free(tx_data);
-        
+
         // Sign the serialized data
         const signature = try key_pair.sign(tx_data, allocator);
         self.base.txn_signature = signature;
     }
-    
+
     /// Serialize transaction for signing or transmission
     pub fn serialize(self: *const PaymentTransaction, allocator: std.mem.Allocator) ![]u8 {
         // TODO: Implement proper serialization (canonical field ordering, binary format)
         // For now, simplified version
         var list = try std.ArrayList(u8).initCapacity(allocator, 128);
         errdefer list.deinit(allocator);
-        
+
         try list.appendSlice(allocator, &self.base.account);
         try list.appendSlice(allocator, &self.destination);
         try list.appendSlice(allocator, std.mem.asBytes(&self.base.fee));
         try list.appendSlice(allocator, std.mem.asBytes(&self.base.sequence));
-        
+
         return list.toOwnedSlice(allocator);
     }
 };
@@ -143,7 +143,7 @@ pub const AccountSetTransaction = struct {
     set_flag: ?u32 = null,
     transfer_rate: ?u32 = null,
     email_hash: ?[16]u8 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         fee: types.Drops,
@@ -168,7 +168,7 @@ pub const TrustSetTransaction = struct {
     limit_amount: types.Amount,
     quality_in: ?u32 = null,
     quality_out: ?u32 = null,
-    
+
     pub fn create(
         account: types.AccountID,
         limit_amount: types.Amount,
@@ -193,10 +193,10 @@ test "transaction validation" {
     const allocator = std.testing.allocator;
     var processor = try TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     // Create an account
     const account_id = [_]u8{1} ** 20;
     const account = types.AccountRoot{
@@ -209,7 +209,7 @@ test "transaction validation" {
         .sequence = 1,
     };
     try state.putAccount(account);
-    
+
     // Create a valid transaction
     const tx = types.Transaction{
         .tx_type = .payment,
@@ -218,7 +218,7 @@ test "transaction validation" {
         .sequence = 1,
         .signing_pub_key = [_]u8{0} ** 33,
     };
-    
+
     const result = try processor.validateTransaction(&tx, &state);
     try std.testing.expectEqual(types.TransactionResult.tes_success, result);
 }
@@ -227,7 +227,7 @@ test "payment transaction creation" {
     const sender = [_]u8{1} ** 20;
     const receiver = [_]u8{2} ** 20;
     const amount = types.Amount.fromXRP(100 * types.XRP);
-    
+
     const payment = PaymentTransaction.create(
         sender,
         receiver,
@@ -236,8 +236,7 @@ test "payment transaction creation" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     try std.testing.expectEqual(types.TransactionType.payment, payment.base.tx_type);
     try std.testing.expectEqual(amount, payment.amount);
 }
-

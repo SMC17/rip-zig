@@ -5,7 +5,7 @@ const crypto = @import("crypto.zig");
 
 /// XRP Ledger Consensus Protocol (Complete Implementation)
 /// Based on the Ripple Protocol Consensus Algorithm (RPCA)
-/// 
+///
 /// Consensus Process:
 /// 1. Open: Collect candidate transactions
 /// 2. Establish: Create initial proposal
@@ -21,7 +21,7 @@ pub const ConsensusEngine = struct {
     our_position: ?Position,
     ledger_manager: *ledger.LedgerManager,
     round_start_time: i64,
-    
+
     pub fn init(allocator: std.mem.Allocator, ledger_manager: *ledger.LedgerManager) !ConsensusEngine {
         return ConsensusEngine{
             .allocator = allocator,
@@ -35,7 +35,7 @@ pub const ConsensusEngine = struct {
             .round_start_time = 0,
         };
     }
-    
+
     pub fn deinit(self: *ConsensusEngine) void {
         self.unl.deinit(self.allocator);
         self.proposals.deinit(self.allocator);
@@ -43,40 +43,39 @@ pub const ConsensusEngine = struct {
             pos.deinit(self.allocator);
         }
     }
-    
+
     /// Add a validator to the UNL (Unique Node List)
     pub fn addValidator(self: *ConsensusEngine, validator: ValidatorInfo) !void {
         try self.unl.append(self.allocator, validator);
     }
-    
+
     /// Start a new consensus round
     pub fn startRound(self: *ConsensusEngine, candidate_txs: []const types.Transaction) !void {
         self.round_number += 1;
         self.state = .open;
         self.phase = .{ .open = 0 };
         self.round_start_time = std.time.milliTimestamp();
-        
+
         // Clear previous proposals
         self.proposals.clearRetainingCapacity();
-        
+
         // Create our initial position
         self.our_position = Position{
             .prior_ledger = self.ledger_manager.getCurrentLedger().hash,
             .transactions = try self.allocator.dupe(types.TxHash, &[_]types.TxHash{}),
             .close_time = std.time.timestamp(),
         };
-        
-        std.debug.print("Consensus round {d} started with {d} candidate transactions\n", 
-            .{self.round_number, candidate_txs.len});
+
+        std.debug.print("Consensus round {d} started with {d} candidate transactions\n", .{ self.round_number, candidate_txs.len });
     }
-    
+
     /// Process a proposal from another validator
     pub fn processProposal(self: *ConsensusEngine, proposal: Proposal) !void {
         // Verify proposal signature
         if (!try self.verifyProposal(&proposal)) {
             return error.InvalidProposal;
         }
-        
+
         // Check if from trusted validator
         var is_trusted = false;
         for (self.unl.items) |validator| {
@@ -87,18 +86,17 @@ pub const ConsensusEngine = struct {
                 }
             }
         }
-        
+
         if (!is_trusted) {
             return error.UntrustedValidator;
         }
-        
+
         // Store proposal
         try self.proposals.append(self.allocator, proposal);
-        
-        std.debug.print("Received proposal from validator {any}\n", 
-            .{proposal.validator_id[0..8]});
+
+        std.debug.print("Received proposal from validator {any}\n", .{proposal.validator_id[0..8]});
     }
-    
+
     /// Verify a proposal's cryptographic signature
     fn verifyProposal(self: *ConsensusEngine, proposal: *const Proposal) !bool {
         _ = self;
@@ -108,11 +106,11 @@ pub const ConsensusEngine = struct {
         if (proposal.position.transactions.len > 10000) return false; // Sanity check
         return true;
     }
-    
+
     /// Run a consensus round step
     pub fn runRoundStep(self: *ConsensusEngine) !bool {
         const elapsed_ms = std.time.milliTimestamp() - self.round_start_time;
-        
+
         return switch (self.phase) {
             .open => |*time| {
                 // Open phase: collect transactions for ~2 seconds
@@ -138,8 +136,7 @@ pub const ConsensusEngine = struct {
                 const agreement = try self.calculateAgreement();
                 if (agreement >= 0.50 and time.* >= 5) {
                     self.phase = .{ .consensus_60 = 0 };
-                    std.debug.print("Phase: CONSENSUS 60% (agreement: {d:.1}%)\n", 
-                        .{agreement * 100});
+                    std.debug.print("Phase: CONSENSUS 60% (agreement: {d:.1}%)\n", .{agreement * 100});
                 }
                 return false;
             },
@@ -149,8 +146,7 @@ pub const ConsensusEngine = struct {
                 const agreement = try self.calculateAgreement();
                 if (agreement >= 0.60 and time.* >= 5) {
                     self.phase = .{ .consensus_70 = 0 };
-                    std.debug.print("Phase: CONSENSUS 70% (agreement: {d:.1}%)\n", 
-                        .{agreement * 100});
+                    std.debug.print("Phase: CONSENSUS 70% (agreement: {d:.1}%)\n", .{agreement * 100});
                 }
                 return false;
             },
@@ -160,8 +156,7 @@ pub const ConsensusEngine = struct {
                 const agreement = try self.calculateAgreement();
                 if (agreement >= 0.70 and time.* >= 5) {
                     self.phase = .{ .consensus_80 = 0 };
-                    std.debug.print("Phase: CONSENSUS 80% (agreement: {d:.1}%)\n", 
-                        .{agreement * 100});
+                    std.debug.print("Phase: CONSENSUS 80% (agreement: {d:.1}%)\n", .{agreement * 100});
                 }
                 return false;
             },
@@ -172,8 +167,7 @@ pub const ConsensusEngine = struct {
                 if (agreement >= 0.80) {
                     self.phase = .validation;
                     self.state = .accepted;
-                    std.debug.print("Phase: VALIDATION (agreement: {d:.1}%)\n", 
-                        .{agreement * 100});
+                    std.debug.print("Phase: VALIDATION (agreement: {d:.1}%)\n", .{agreement * 100});
                     return true; // Consensus reached!
                 }
                 return false;
@@ -184,14 +178,14 @@ pub const ConsensusEngine = struct {
             },
         };
     }
-    
+
     /// Calculate current agreement level
     fn calculateAgreement(self: *ConsensusEngine) !f64 {
         if (self.unl.items.len == 0) return 1.0; // No validators = 100% agreement
-        
+
         var agreeing: usize = 0;
         const our_pos = self.our_position orelse return 0.0;
-        
+
         // Count validators that agree with our position
         for (self.proposals.items) |proposal| {
             // Simple agreement: same prior ledger
@@ -199,30 +193,29 @@ pub const ConsensusEngine = struct {
                 agreeing += 1;
             }
         }
-        
+
         // Include ourselves
         agreeing += 1;
-        
+
         const total = self.unl.items.len + 1;
         return @as(f64, @floatFromInt(agreeing)) / @as(f64, @floatFromInt(total));
     }
-    
+
     /// Finalize the consensus round and close ledger
     pub fn finalizeRound(self: *ConsensusEngine) !ConsensusResult {
         const duration_ms = std.time.milliTimestamp() - self.round_start_time;
-        
+
         // Build final transaction set from proposals
         var final_txs = try std.ArrayList(types.Transaction).initCapacity(self.allocator, 0);
         defer final_txs.deinit(self.allocator);
-        
+
         // Close the ledger
         const new_ledger = try self.ledger_manager.closeLedger(final_txs.items);
-        
+
         self.state = .validated;
-        
-        std.debug.print("Consensus finalized: ledger {d}, duration {d}ms\n", 
-            .{new_ledger.sequence, duration_ms});
-        
+
+        std.debug.print("Consensus finalized: ledger {d}, duration {d}ms\n", .{ new_ledger.sequence, duration_ms });
+
         return ConsensusResult{
             .round_number = self.round_number,
             .success = true,
@@ -231,7 +224,7 @@ pub const ConsensusEngine = struct {
             .final_ledger_seq = new_ledger.sequence,
         };
     }
-    
+
     /// Get current consensus state summary
     pub fn getStatus(self: *const ConsensusEngine) ConsensusStatus {
         return ConsensusStatus{
@@ -246,21 +239,21 @@ pub const ConsensusEngine = struct {
 
 /// States of the consensus process
 pub const ConsensusState = enum {
-    open,         // Collecting transactions
-    establish,    // Establishing initial proposal
-    accepted,     // Consensus reached
-    validated,    // Ledger validated
+    open, // Collecting transactions
+    establish, // Establishing initial proposal
+    accepted, // Consensus reached
+    validated, // Ledger validated
 };
 
 /// Detailed consensus phases with timing
 pub const ConsensusPhase = union(enum) {
-    open: u32,           // Time in open phase
-    establish: u32,      // Time in establish
-    consensus_50: u32,   // 50% threshold round
-    consensus_60: u32,   // 60% threshold round
-    consensus_70: u32,   // 70% threshold round
-    consensus_80: u32,   // 80% threshold round
-    validation: void,    // Final validation
+    open: u32, // Time in open phase
+    establish: u32, // Time in establish
+    consensus_50: u32, // 50% threshold round
+    consensus_60: u32, // 60% threshold round
+    consensus_70: u32, // 70% threshold round
+    consensus_80: u32, // 80% threshold round
+    validation: void, // Final validation
 };
 
 /// Information about a validator node
@@ -275,7 +268,7 @@ pub const Position = struct {
     prior_ledger: types.LedgerHash,
     transactions: []const types.TxHash,
     close_time: i64,
-    
+
     pub fn deinit(self: *Position, allocator: std.mem.Allocator) void {
         allocator.free(self.transactions);
     }
@@ -313,10 +306,10 @@ test "consensus engine initialization" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var engine = try ConsensusEngine.init(allocator, &lm);
     defer engine.deinit();
-    
+
     try std.testing.expectEqual(ConsensusState.open, engine.state);
     try std.testing.expectEqual(@as(u64, 0), engine.round_number);
 }
@@ -325,16 +318,16 @@ test "add validator to UNL" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var engine = try ConsensusEngine.init(allocator, &lm);
     defer engine.deinit();
-    
+
     const validator = ValidatorInfo{
         .public_key = [_]u8{1} ** 33,
         .node_id = [_]u8{2} ** 32,
         .is_trusted = true,
     };
-    
+
     try engine.addValidator(validator);
     try std.testing.expectEqual(@as(usize, 1), engine.unl.items.len);
 }
@@ -343,10 +336,10 @@ test "consensus round progression" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var engine = try ConsensusEngine.init(allocator, &lm);
     defer engine.deinit();
-    
+
     // Add validators to reach quorum
     var i: u8 = 0;
     while (i < 4) : (i += 1) {
@@ -357,14 +350,14 @@ test "consensus round progression" {
         };
         try engine.addValidator(validator);
     }
-    
+
     // Start round
     const empty_txs: []const types.Transaction = &[_]types.Transaction{};
     try engine.startRound(empty_txs);
-    
+
     try std.testing.expectEqual(@as(u64, 1), engine.round_number);
     try std.testing.expectEqual(ConsensusState.open, engine.state);
-    
+
     // Simulate proposals from validators (they agree with us)
     const current_ledger_hash = engine.ledger_manager.getCurrentLedger().hash;
     for (engine.unl.items) |validator| {
@@ -382,14 +375,14 @@ test "consensus round progression" {
         };
         try engine.processProposal(proposal);
     }
-    
+
     // Run through phases
     var consensus_reached = false;
     var iterations: u32 = 0;
     while (!consensus_reached and iterations < 100) : (iterations += 1) {
         consensus_reached = try engine.runRoundStep();
     }
-    
+
     // Should reach consensus
     try std.testing.expect(consensus_reached);
     try std.testing.expect(engine.state == .accepted);

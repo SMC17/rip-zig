@@ -11,7 +11,7 @@ pub const RpcMethods = struct {
     ledger_manager: *ledger.LedgerManager,
     account_state: *ledger.AccountState,
     tx_processor: *transaction.TransactionProcessor,
-    
+
     pub fn init(
         allocator: std.mem.Allocator,
         ledger_manager: *ledger.LedgerManager,
@@ -25,7 +25,7 @@ pub const RpcMethods = struct {
             .tx_processor = tx_processor,
         };
     }
-    
+
     /// account_info - Get information about an account
     /// WEEK 3 DAY 15: Fixed to match rippled format (Base58 address)
     pub fn accountInfo(self: *RpcMethods, account_id: types.AccountID) ![]u8 {
@@ -40,17 +40,17 @@ pub const RpcMethods = struct {
                 \\}}
             , .{});
         };
-        
+
         const current_ledger = self.ledger_manager.getCurrentLedger();
-        
+
         // Convert account ID to Base58 address (FIXED Day 15)
         const address = try base58.Base58.encodeAccountID(self.allocator, account.account);
         defer self.allocator.free(address);
-        
+
         // Balance must be string in drops (XRPL format)
         const balance_str = try std.fmt.allocPrint(self.allocator, "{d}", .{account.balance});
         defer self.allocator.free(balance_str);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -75,7 +75,7 @@ pub const RpcMethods = struct {
             current_ledger.sequence,
         });
     }
-    
+
     /// ledger - Get information about a ledger
     /// WEEK 3 DAY 15: Fixed to match rippled format (full hex hashes, all fields)
     pub fn ledgerInfo(self: *RpcMethods, ledger_index: ?types.LedgerSequence) ![]u8 {
@@ -91,28 +91,28 @@ pub const RpcMethods = struct {
                 \\}}
             , .{});
         };
-        
+
         // Convert hashes to full hex strings (FIXED Day 15)
         const ledger_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &ledger_data.hash);
         defer self.allocator.free(ledger_hash_hex);
-        
+
         const parent_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &ledger_data.parent_hash);
         defer self.allocator.free(parent_hash_hex);
-        
+
         const account_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &ledger_data.account_state_hash);
         defer self.allocator.free(account_hash_hex);
-        
+
         const tx_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &ledger_data.transaction_hash);
         defer self.allocator.free(tx_hash_hex);
-        
+
         // Format total_coins as string (XRPL format)
         const total_coins_str = try std.fmt.allocPrint(self.allocator, "{d}", .{ledger_data.total_coins});
         defer self.allocator.free(total_coins_str);
-        
+
         // Format ledger_index as string (can be number or string in XRPL)
         const ledger_index_str = try std.fmt.allocPrint(self.allocator, "{d}", .{ledger_data.sequence});
         defer self.allocator.free(ledger_index_str);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -150,16 +150,16 @@ pub const RpcMethods = struct {
             ledger_data.sequence,
         });
     }
-    
+
     /// server_info - Get server information
     /// WEEK 3 DAY 15: Fixed to match rippled format (network_id, server_state, etc.)
     pub fn serverInfo(self: *RpcMethods, uptime: u64) ![]u8 {
         const current_ledger = self.ledger_manager.getCurrentLedger();
-        
+
         // Format ledger hash as full hex string (FIXED Day 15)
         const ledger_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &current_ledger.hash);
         defer self.allocator.free(ledger_hash_hex);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -194,16 +194,16 @@ pub const RpcMethods = struct {
             current_ledger.sequence,
         });
     }
-    
+
     /// fee - Get current transaction fee levels
     /// WEEK 3 DAY 15: Added status field to match rippled format
     pub fn fee(self: *RpcMethods) ![]u8 {
         const current_ledger = self.ledger_manager.getCurrentLedger();
-        
+
         // Format fees as strings (XRPL format)
         const base_fee_str = try std.fmt.allocPrint(self.allocator, "{d}", .{types.MIN_TX_FEE});
         defer self.allocator.free(base_fee_str);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -235,13 +235,13 @@ pub const RpcMethods = struct {
             current_ledger.sequence,
         });
     }
-    
+
     /// submit - Submit a signed transaction
     pub fn submit(self: *RpcMethods, tx_blob: []const u8) ![]u8 {
         _ = tx_blob;
         // TODO: Deserialize and validate transaction
         const pending_count = self.tx_processor.getPendingTransactions().len;
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -259,11 +259,11 @@ pub const RpcMethods = struct {
             \\}}
         , .{pending_count});
     }
-    
+
     /// ledger_current - Get current working ledger index
     pub fn ledgerCurrent(self: *RpcMethods) ![]u8 {
         const current_ledger = self.ledger_manager.getCurrentLedger();
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -272,16 +272,16 @@ pub const RpcMethods = struct {
             \\}}
         , .{current_ledger.sequence});
     }
-    
+
     /// ledger_closed - Get most recently closed ledger
     /// WEEK 3 DAY 15: Fixed to use full hex hash string
     pub fn ledgerClosed(self: *RpcMethods) ![]u8 {
         const current_ledger = self.ledger_manager.getCurrentLedger();
-        
+
         // Format hash as full hex string (FIXED Day 15)
         const ledger_hash_hex = try rpc_format.hashToHexAlloc(self.allocator, &current_ledger.hash);
         defer self.allocator.free(ledger_hash_hex);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -295,7 +295,7 @@ pub const RpcMethods = struct {
             current_ledger.sequence,
         });
     }
-    
+
     /// ping - Health check
     pub fn ping(self: *RpcMethods) ![]u8 {
         _ = self;
@@ -305,12 +305,12 @@ pub const RpcMethods = struct {
             \\}
         );
     }
-    
+
     /// random - Generate random number
     pub fn random(self: *RpcMethods) ![]u8 {
         var random_bytes: [32]u8 = undefined;
         std.crypto.random.bytes(&random_bytes);
-        
+
         return try std.fmt.allocPrint(self.allocator,
             \\{{
             \\  "result": {{
@@ -325,13 +325,13 @@ test "rpc methods initialization" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     const methods = RpcMethods.init(allocator, &lm, &state, &processor);
     _ = methods;
 }
@@ -340,19 +340,18 @@ test "server info method" {
     const allocator = std.testing.allocator;
     var lm = try ledger.LedgerManager.init(allocator);
     defer lm.deinit();
-    
+
     var state = ledger.AccountState.init(allocator);
     defer state.deinit();
-    
+
     var processor = try transaction.TransactionProcessor.init(allocator);
     defer processor.deinit();
-    
+
     var methods = RpcMethods.init(allocator, &lm, &state, &processor);
-    
+
     const result = try methods.serverInfo(12345);
     defer allocator.free(result);
-    
+
     try std.testing.expect(std.mem.indexOf(u8, result, "rippled-zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, result, "12345") != null);
 }
-

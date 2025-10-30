@@ -7,13 +7,13 @@ pub const PathFinder = struct {
     allocator: std.mem.Allocator,
     max_paths: u32 = 10,
     max_path_length: u32 = 6,
-    
+
     pub fn init(allocator: std.mem.Allocator) PathFinder {
         return PathFinder{
             .allocator = allocator,
         };
     }
-    
+
     /// Find payment paths from source to destination
     pub fn findPaths(
         self: *PathFinder,
@@ -25,17 +25,17 @@ pub const PathFinder = struct {
         _ = source;
         _ = destination;
         _ = dest_amount;
-        
+
         // TODO: Implement Dijkstra's algorithm for pathfinding
         // For now, return empty paths
         return &[_]Path{};
     }
-    
+
     /// Calculate cost of a payment path
     pub fn calculatePathCost(self: *PathFinder, path: Path) !types.Amount {
         _ = self;
         _ = path;
-        
+
         // TODO: Calculate actual path cost including fees and exchange rates
         return types.Amount.fromXRP(types.MIN_TX_FEE);
     }
@@ -44,7 +44,7 @@ pub const PathFinder = struct {
 /// A payment path through the graph
 pub const Path = struct {
     steps: []const PathStep,
-    
+
     /// Calculate path quality
     pub fn getQuality(self: Path) f64 {
         _ = self;
@@ -57,7 +57,7 @@ pub const PathStep = struct {
     account: ?types.AccountID,
     currency: ?types.Currency,
     issuer: ?types.AccountID,
-    
+
     /// Get step type
     pub fn getType(self: PathStep) PathStepType {
         if (self.account != null) {
@@ -80,8 +80,7 @@ pub const PathStepType = enum {
 test "pathfinder initialization" {
     const allocator = std.testing.allocator;
     const finder = PathFinder.init(allocator);
-    
+
     try std.testing.expectEqual(@as(u32, 10), finder.max_paths);
     try std.testing.expectEqual(@as(u32, 6), finder.max_path_length);
 }
-

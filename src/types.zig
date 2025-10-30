@@ -28,9 +28,9 @@ pub const TxHash = [32]u8;
 /// Currency code (3-letter ISO 4217 or 160-bit hex)
 pub const Currency = union(enum) {
     xrp: void,
-    standard: [3]u8,  // e.g., USD, EUR
-    custom: [20]u8,   // Custom currency code
-    
+    standard: [3]u8, // e.g., USD, EUR
+    custom: [20]u8, // Custom currency code
+
     pub fn isXRP(self: Currency) bool {
         return self == .xrp;
     }
@@ -41,15 +41,15 @@ pub const Amount = union(enum) {
     xrp: Drops,
     iou: struct {
         currency: Currency,
-        value: i64,      // Mantissa
-        exponent: i8,    // For decimal representation
+        value: i64, // Mantissa
+        exponent: i8, // For decimal representation
         issuer: AccountID,
     },
-    
+
     pub fn fromXRP(drops: Drops) Amount {
         return .{ .xrp = drops };
     }
-    
+
     pub fn isXRP(self: Amount) bool {
         return self == .xrp;
     }
@@ -85,12 +85,12 @@ pub const TransactionType = enum(u16) {
 /// Transaction result codes
 pub const TransactionResult = enum {
     success,
-    tec_claim,              // Fee claimed, but transaction failed
-    tef_failure,            // Failed, fee not claimed
-    tel_local_error,        // Local error
-    tem_malformed,          // Malformed transaction
-    ter_retry,              // Retry transaction
-    tes_success,            // Success
+    tec_claim, // Fee claimed, but transaction failed
+    tef_failure, // Failed, fee not claimed
+    tel_local_error, // Local error
+    tem_malformed, // Malformed transaction
+    ter_retry, // Retry transaction
+    tes_success, // Success
 };
 
 /// Signer for multi-signature transactions (BLOCKER #4 FIX)
@@ -109,14 +109,14 @@ pub const Transaction = struct {
     sequence: u32,
     account_txn_id: ?TxHash = null,
     last_ledger_sequence: ?LedgerSequence = null,
-    
+
     // Single signature (traditional)
     signing_pub_key: ?[33]u8 = null, // Now optional for multi-sig
     txn_signature: ?[]const u8 = null,
-    
+
     // Multi-signature support (BLOCKER #4 FIXED)
     signers: ?[]const Signer = null,
-    
+
     // For multi-sig transactions:
     // - signing_pub_key is null or empty
     // - signers array contains multiple signatures
@@ -172,8 +172,7 @@ test "amount creation" {
 test "currency types" {
     const xrp = Currency.xrp;
     try std.testing.expect(xrp == .xrp);
-    
+
     const usd = Currency{ .standard = .{ 'U', 'S', 'D' } };
     try std.testing.expect(std.meta.activeTag(usd) == .standard);
 }
-

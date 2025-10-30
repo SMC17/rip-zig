@@ -5,16 +5,14 @@ const canonical = @import("../src/canonical.zig");
 
 /// DAY 10: Ledger Hash Validation Against Real XRPL Network
 /// Goal: Verify our ledger hash calculation matches real XRPL ledger hashes
-
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
     while (i < out.len) : (i += 1) {
-        out[i] = try std.fmt.parseInt(u8, hex[i*2..i*2+2], 16);
+        out[i] = try std.fmt.parseInt(u8, hex[i * 2 .. i * 2 + 2], 16);
     }
 }
 
-/// Real ledger from testnet
 /// Ledger #11928994
 const RealLedger = struct {
     const sequence: u32 = 11928994;
@@ -31,26 +29,26 @@ const RealLedger = struct {
 
 test "DAY 10: Ledger hash calculation validation" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 10: LEDGER HASH VALIDATION\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     // Parse real ledger data
     var expected_hash: [32]u8 = undefined;
     try parseHex(RealLedger.ledger_hash_hex, &expected_hash);
-    
+
     var parent_hash: [32]u8 = undefined;
     try parseHex(RealLedger.parent_hash_hex, &parent_hash);
-    
+
     var account_hash: [32]u8 = undefined;
     try parseHex(RealLedger.account_hash_hex, &account_hash);
-    
+
     var transaction_hash: [32]u8 = undefined;
     try parseHex(RealLedger.transaction_hash_hex, &transaction_hash);
-    
+
     // Create ledger with real values
     const test_ledger = ledger.Ledger{
         .sequence = RealLedger.sequence,
@@ -64,10 +62,10 @@ test "DAY 10: Ledger hash calculation validation" {
         .close_flags = RealLedger.close_flags,
         .parent_close_time = RealLedger.parent_close_time,
     };
-    
+
     // Calculate hash with our algorithm
     const calculated_hash = test_ledger.calculateHash();
-    
+
     std.debug.print("Real Ledger Data:\n", .{});
     std.debug.print("  Sequence: {d}\n", .{RealLedger.sequence});
     std.debug.print("  Close time: {d}\n", .{RealLedger.close_time});
@@ -86,7 +84,7 @@ test "DAY 10: Ledger hash calculation validation" {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Hash Calculation:\n", .{});
     std.debug.print("  Expected hash: ", .{});
@@ -94,15 +92,15 @@ test "DAY 10: Ledger hash calculation validation" {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("  Calculated hash: ", .{});
     for (calculated_hash[0..16]) |byte| {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("\n", .{});
-    
+
     // Compare
     if (std.mem.eql(u8, &expected_hash, &calculated_hash)) {
         std.debug.print("✅ HASHES MATCH! Ledger hash algorithm is CORRECT!\n", .{});
@@ -118,7 +116,7 @@ test "DAY 10: Ledger hash calculation validation" {
         std.debug.print("      XRPL ledger hash uses canonical serialization\n", .{});
         std.debug.print("      May need to verify exact field order from XRPL spec\n", .{});
     }
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -130,7 +128,7 @@ test "DAY 10: Ledger hash algorithm investigation" {
     std.debug.print("  DAY 10: LEDGER HASH ALGORITHM INVESTIGATION\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("XRPL Ledger Hash Specification:\n", .{});
     std.debug.print("\n", .{});
     std.debug.print("According to XRPL documentation:\n", .{});
@@ -160,16 +158,16 @@ test "DAY 10: Ledger hash algorithm investigation" {
 
 test "DAY 10: Test SHA-512 Half vs SHA-256" {
     const allocator = std.testing.allocator;
-    
+
     const test_data = "test ledger data";
-    
+
     // Calculate with SHA-256 (current implementation)
     var sha256_hash: [32]u8 = undefined;
     std.crypto.hash.sha2.Sha256.hash(test_data, &sha256_hash, .{});
-    
+
     // Calculate with SHA-512 Half (XRPL standard)
     const sha512half_hash = crypto.Hash.sha512Half(test_data);
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Hash Comparison for test data:\n", .{});
     std.debug.print("  SHA-256:     ", .{});
@@ -177,16 +175,15 @@ test "DAY 10: Test SHA-512 Half vs SHA-256" {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("  SHA-512 Half: ", .{});
     for (sha512half_hash[0..8]) |byte| {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("⚠️  These are DIFFERENT algorithms\n", .{});
     std.debug.print("   Ledger hash MUST use SHA-512 Half for XRPL compatibility\n", .{});
     std.debug.print("\n", .{});
 }
-

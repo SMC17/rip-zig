@@ -42,4 +42,3 @@ pub fn main() !void {
     // Start server (blocks)
     try server.start();
 }
-

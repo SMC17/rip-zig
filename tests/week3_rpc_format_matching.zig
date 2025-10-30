@@ -4,7 +4,6 @@ const types = @import("../src/types.zig");
 
 /// WEEK 3 DAYS 15-16: RPC Format Matching Validation
 /// Goal: Compare our RPC responses with real rippled responses and fix mismatches
-
 /// Real rippled server_info response structure
 const RealServerInfo = struct {
     // Required fields from real rippled
@@ -19,7 +18,7 @@ const RealServerInfo = struct {
         "validation_quorum",
         "status", // Top-level
     };
-    
+
     // Our implementation might be missing:
     // - network_id
     // - server_state (we have "state" instead)
@@ -52,7 +51,7 @@ const RealLedgerResponse = struct {
         "status", // Top-level
         "validated", // Top-level
     };
-    
+
     // Our implementation might be missing:
     // - account_hash
     // - close_time_human
@@ -69,7 +68,7 @@ test "WEEK 3 DAY 15: Compare server_info format with real rippled" {
     std.debug.print("  server_info Format Comparison\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("Real rippled server_info includes:\n", .{});
     std.debug.print("  ✅ build_version\n", .{});
     std.debug.print("  ✅ complete_ledgers\n", .{});
@@ -86,7 +85,7 @@ test "WEEK 3 DAY 15: Compare server_info format with real rippled" {
     std.debug.print("  ⚠️  last_close (we don't have)\n", .{});
     std.debug.print("  ⚠️  load_factor (we don't have)\n", .{});
     std.debug.print("  ⚠️  peers count (we have 0, should reflect real state)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Our implementation has:\n", .{});
     std.debug.print("  ✅ build_version\n", .{});
@@ -96,7 +95,7 @@ test "WEEK 3 DAY 15: Compare server_info format with real rippled" {
     std.debug.print("  ✅ uptime\n", .{});
     std.debug.print("  ✅ validated_ledger (but format may differ)\n", .{});
     std.debug.print("  ✅ validation_quorum\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("FIXES NEEDED:\n", .{});
     std.debug.print("  1. Add network_id field\n", .{});
@@ -109,7 +108,7 @@ test "WEEK 3 DAY 15: Compare server_info format with real rippled" {
     std.debug.print("  8. Add last_close object (can defer)\n", .{});
     std.debug.print("  9. Add load_factor (can be 1 for now)\n", .{});
     std.debug.print("  10. Fix validated_ledger format (should have age, base_fee_xrp, etc.)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -121,7 +120,7 @@ test "WEEK 3 DAY 15: Compare ledger format with real rippled" {
     std.debug.print("  ledger Format Comparison\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("Real rippled ledger includes:\n", .{});
     std.debug.print("  ✅ ledger_index (string or number)\n", .{});
     std.debug.print("  ✅ ledger_hash\n", .{});
@@ -136,7 +135,7 @@ test "WEEK 3 DAY 15: Compare ledger format with real rippled" {
     std.debug.print("  ✅ total_coins\n", .{});
     std.debug.print("  ⚠️  close_flags (we have in struct but not in response)\n", .{});
     std.debug.print("  ✅ closed\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Our implementation has:\n", .{});
     std.debug.print("  ✅ ledger_index\n", .{});
@@ -145,7 +144,7 @@ test "WEEK 3 DAY 15: Compare ledger format with real rippled" {
     std.debug.print("  ✅ close_time\n", .{});
     std.debug.print("  ✅ total_coins\n", .{});
     std.debug.print("  ✅ closed\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("FIXES NEEDED:\n", .{});
     std.debug.print("  1. Add account_hash field\n", .{});
@@ -155,7 +154,7 @@ test "WEEK 3 DAY 15: Compare ledger format with real rippled" {
     std.debug.print("  5. Add parent_close_time\n", .{});
     std.debug.print("  6. Add close_flags to response\n", .{});
     std.debug.print("  7. Fix hash formats (full hex strings, not truncated)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -163,13 +162,13 @@ test "WEEK 3 DAY 15: Compare ledger format with real rippled" {
 
 test "WEEK 3 DAY 15: Compare account_info format" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  account_info Format Comparison\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("Real rippled account_info includes:\n", .{});
     std.debug.print("  ✅ account_data.Account (Base58 address)\n", .{});
     std.debug.print("  ✅ account_data.Balance (string in drops)\n", .{});
@@ -183,7 +182,7 @@ test "WEEK 3 DAY 15: Compare account_info format" {
     std.debug.print("  ⚠️  account_data.RegularKey (we don't have)\n", .{});
     std.debug.print("  ⚠️  account_data.EmailHash (we don't have)\n", .{});
     std.debug.print("  ⚠️  account_data.MessageKey (we don't have)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Our implementation has:\n", .{});
     std.debug.print("  ⚠️  Account field shows raw bytes, should be Base58 address\n", .{});
@@ -193,13 +192,13 @@ test "WEEK 3 DAY 15: Compare account_info format" {
     std.debug.print("  ✅ Sequence\n", .{});
     std.debug.print("  ✅ ledger_current_index\n", .{});
     std.debug.print("  ✅ validated\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("FIXES NEEDED:\n", .{});
     std.debug.print("  1. Convert Account field to Base58 address string\n", .{});
     std.debug.print("  2. Ensure Balance is string format\n", .{});
     std.debug.print("  3. Add optional fields when available (PreviousTxnID, etc.)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -211,7 +210,7 @@ test "WEEK 3 DAY 15: Compare fee format" {
     std.debug.print("  fee Format Comparison\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("Real rippled fee includes:\n", .{});
     std.debug.print("  ✅ current_ledger_size (string)\n", .{});
     std.debug.print("  ✅ current_queue_size (string)\n", .{});
@@ -221,7 +220,7 @@ test "WEEK 3 DAY 15: Compare fee format" {
     std.debug.print("  ✅ levels (median_level, minimum_level, open_ledger_level, reference_level)\n", .{});
     std.debug.print("  ✅ max_queue_size (string)\n", .{});
     std.debug.print("  ✅ status (top-level)\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("Our implementation has:\n", .{});
     std.debug.print("  ✅ current_ledger_size\n", .{});
@@ -232,12 +231,12 @@ test "WEEK 3 DAY 15: Compare fee format" {
     std.debug.print("  ✅ levels object\n", .{});
     std.debug.print("  ✅ max_queue_size\n", .{});
     std.debug.print("  ⚠️  Missing 'status' field\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("FIXES NEEDED:\n", .{});
     std.debug.print("  1. Add 'status' field to response\n", .{});
     std.debug.print("  2. Ensure all numeric fields are strings where rippled uses strings\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -249,7 +248,7 @@ test "WEEK 3 DAY 15 STATUS: RPC Format Matching Analysis" {
     std.debug.print("  WEEK 3 DAY 15: RPC FORMAT ANALYSIS SUMMARY\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     std.debug.print("RPC METHODS ANALYZED:\n", .{});
     std.debug.print("\n", .{});
     std.debug.print("1. server_info:\n", .{});
@@ -279,4 +278,3 @@ test "WEEK 3 DAY 15 STATUS: RPC Format Matching Analysis" {
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
 }
-

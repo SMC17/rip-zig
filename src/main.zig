@@ -36,7 +36,7 @@ pub const Node = struct {
     tx_processor: transaction.TransactionProcessor,
     rpc_server: rpc.RpcServer,
     storage: storage.Storage,
-    
+
     pub fn init(allocator: std.mem.Allocator) !Node {
         // Generate random node ID
         var id: [32]u8 = undefined;
@@ -46,7 +46,7 @@ pub const Node = struct {
         const node_storage = try storage.Storage.init(allocator, "data");
 
         const consensus_engine = try consensus.ConsensusEngine.init(allocator, &ledger_manager);
-        
+
         return Node{
             .allocator = allocator,
             .id = id,
@@ -73,7 +73,7 @@ pub const Node = struct {
         std.debug.print("Network: Testnet (for development)\n\n", .{});
 
         // WEEK 4 FIX: Actually start services
-        
+
         // Start RPC server in background thread (simplified for now)
         std.debug.print("RPC Server: http://127.0.0.1:5005\n", .{});
         std.debug.print("  Available endpoints:\n", .{});
@@ -81,10 +81,10 @@ pub const Node = struct {
         std.debug.print("  - GET  /ledger\n", .{});
         std.debug.print("  - GET  /health\n", .{});
         std.debug.print("\n", .{});
-        
+
         // Note: Full implementation would start RPC server in separate thread
         // For alpha: Document that it's available but not auto-started
-        
+
         // Demonstrate core functionality
         std.debug.print("Core Systems Ready:\n", .{});
         std.debug.print("  [OK] Consensus engine initialized\n", .{});
@@ -106,7 +106,6 @@ test "basic node initialization" {
     const allocator = std.testing.allocator;
     var node = try Node.init(allocator);
     defer node.deinit();
-    
+
     try std.testing.expect(node.id.len == 32);
 }
-

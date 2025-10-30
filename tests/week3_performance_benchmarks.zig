@@ -7,10 +7,8 @@ const types = @import("../src/types.zig");
 const crypto = @import("../src/crypto.zig");
 const canonical = @import("../src/canonical.zig");
 
-/// WEEK 3 DAYS 17-18: Performance Benchmarks
 /// Goal: Stress test and optimize hot paths
 
-/// Benchmark hash calculations (SHA-512 Half)
 test "WEEK 3 DAY 17: Hash calculation performance" {
     const allocator = std.testing.allocator;
     
@@ -50,7 +48,6 @@ test "WEEK 3 DAY 17: Hash calculation performance" {
     std.debug.print("\n", .{});
 }
 
-/// Benchmark canonical serialization
 test "WEEK 3 DAY 17: Canonical serialization performance" {
     const allocator = std.testing.allocator;
     
@@ -100,7 +97,6 @@ test "WEEK 3 DAY 17: Canonical serialization performance" {
     std.debug.print("\n", .{});
 }
 
-/// Stress test consensus rounds (100+ rounds)
 test "WEEK 3 DAY 17: Consensus stress test (100 rounds)" {
     const allocator = std.testing.allocator;
     
@@ -195,7 +191,6 @@ test "WEEK 3 DAY 17: Consensus stress test (100 rounds)" {
     try std.testing.expect(successful_rounds >= num_rounds * 0.9); // 90% success rate
 }
 
-/// Load test RPC server (simulate concurrent requests)
 test "WEEK 3 DAY 18: RPC load test (simulated)" {
     const allocator = std.testing.allocator;
     
@@ -268,7 +263,6 @@ test "WEEK 3 DAY 18: RPC load test (simulated)" {
     std.debug.print("\n", .{});
 }
 
-/// Memory allocation benchmark
 test "WEEK 3 DAY 18: Memory allocation patterns" {
     const allocator = std.testing.allocator;
     
@@ -327,7 +321,6 @@ test "WEEK 3 DAY 18: Memory allocation patterns" {
     std.debug.print("\n", .{});
 }
 
-/// Overall performance summary
 test "WEEK 3 DAY 18: Performance summary" {
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});

@@ -6,7 +6,6 @@ const canonical = @import("canonical.zig");
 const multisig = @import("multisig.zig");
 const ripemd160 = @import("ripemd160.zig");
 
-/// IMMEDIATE VALIDATION: Test all blocker fixes against real data
 /// These tests verify our fixes actually work
 
 // ============================================================================

@@ -16,7 +16,7 @@ pub fn main() !void {
     std.debug.print("1. Initializing ledger manager...\n", .{});
     var ledger_manager = try ledger.LedgerManager.init(allocator);
     defer ledger_manager.deinit();
-    
+
     const genesis = ledger_manager.getCurrentLedger();
     std.debug.print("   Genesis ledger: seq={}, coins={} XRP\n", .{
         genesis.sequence,
@@ -27,7 +27,7 @@ pub fn main() !void {
     std.debug.print("\n2. Initializing consensus engine...\n", .{});
     var consensus_engine = try consensus.ConsensusEngine.init(allocator);
     defer consensus_engine.deinit();
-    
+
     std.debug.print("   Consensus state: {s}\n", .{@tagName(consensus_engine.state)});
 
     // 3. Add some validators to UNL
@@ -50,28 +50,28 @@ pub fn main() !void {
     var round: u32 = 0;
     while (round < num_rounds) : (round += 1) {
         std.debug.print("\n   === Round {} ===\n", .{round + 1});
-        
+
         // Start consensus round
         try consensus_engine.startRound();
         std.debug.print("   - Opened consensus round\n", .{});
-        
+
         // Simulate transaction collection and validation
         std.debug.print("   - Collecting candidate transactions...\n", .{});
         std.debug.print("   - Exchanging proposals with validators...\n", .{});
         std.debug.print("   - Reaching 80% consensus threshold...\n", .{});
-        
+
         // Close the ledger with empty transaction set
         const empty_txs: []const types.Transaction = &[_]types.Transaction{};
         const new_ledger = try ledger_manager.closeLedger(empty_txs);
-        
+
         std.debug.print("   - Ledger {} validated\n", .{new_ledger.sequence});
-        
+
         // Finalize consensus
         const result = try consensus_engine.finalizeRound();
         std.debug.print("   - Consensus finalized: {s}\n", .{
             if (result.success) "SUCCESS" else "FAILED",
         });
-        
+
         // Small delay to simulate real timing
         std.time.sleep(100_000_000); // 100ms
     }
@@ -91,4 +91,3 @@ pub fn main() !void {
     std.debug.print("  - Byzantine Fault Tolerant with 80% threshold\n", .{});
     std.debug.print("  - Deterministic finality (no chain reorganization)\n", .{});
 }
-

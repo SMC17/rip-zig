@@ -6,8 +6,6 @@ const types = @import("types.zig");
 /// CRITICAL HASH VALIDATION TESTS
 /// These determine if our implementation is compatible with real XRPL
 /// MUST pass before launch
-
-/// Real transaction from testnet for validation
 /// Hash: 09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B
 const RealTransaction = struct {
     const hash_hex = "09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B";
@@ -16,11 +14,11 @@ const RealTransaction = struct {
     const sequence: u32 = 11900682;
     const tx_type = "SignerListSet";
     const flags: u32 = 2147483648;
-    
+
     // Public key (hex)
     const signing_pub_key_hex = "02D3FC6F04117E6420CAEA735C57CEEC934820BBCD109200933F6BBDD98F7BFBD9";
-    
-    // Signature (hex) 
+
+    // Signature (hex)
     const signature_hex = "3045022100E30FEACFAE9ED8034C4E24203BBFD6CE0D48ABCA901EDCE6EE04AA281A4DD73F02200CA7FDF03DC0B56F6E6FC5B499B4830F1ABD6A57FC4BE5C03F2CAF3CAFD1FF85";
 };
 
@@ -28,7 +26,7 @@ fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
     while (i < out.len) : (i += 1) {
-        out[i] = try std.fmt.parseInt(u8, hex[i*2..i*2+2], 16);
+        out[i] = try std.fmt.parseInt(u8, hex[i * 2 .. i * 2 + 2], 16);
     }
 }
 
@@ -39,10 +37,10 @@ fn parseHex(hex: []const u8, out: []u8) !void {
 test "HASH VALIDATION 1: transaction hash calculation" {
     // This is THE critical test
     // Can we serialize a transaction and get the SAME hash as the network?
-    
+
     var expected_hash: [32]u8 = undefined;
     try parseHex(RealTransaction.hash_hex, &expected_hash);
-    
+
     std.debug.print("\n", .{});
     std.debug.print("🔴 HASH VALIDATION 1: Transaction Hashing\n", .{});
     std.debug.print("   Real tx hash: {s}...\n", .{RealTransaction.hash_hex[0..16]});
@@ -62,17 +60,17 @@ test "HASH VALIDATION 1: transaction hash calculation" {
 
 test "HASH VALIDATION 2: signature verification against real data" {
     const allocator = std.testing.allocator;
-    
+
     // Parse real public key
     var pub_key_bytes: [33]u8 = undefined;
     try parseHex(RealTransaction.signing_pub_key_hex, &pub_key_bytes);
-    
+
     // Parse real signature
     const sig_hex = RealTransaction.signature_hex;
     var signature = try allocator.alloc(u8, sig_hex.len / 2);
     defer allocator.free(signature);
     try parseHex(sig_hex, signature);
-    
+
     std.debug.print("\n", .{});
     std.debug.print("🔴 HASH VALIDATION 2: Signature Verification\n", .{});
     std.debug.print("   Public key: {s}...\n", .{RealTransaction.signing_pub_key_hex[0..16]});
@@ -96,10 +94,10 @@ test "HASH VALIDATION 2: signature verification against real data" {
 test "HASH VALIDATION 3: ledger hash against real network" {
     // Real ledger #11900686
     // Hash: FB90529615FA52790E2B2E24C32A482DBF9F969C3FDC2726ED0A64A40962BF00
-    
+
     var expected_hash: [32]u8 = undefined;
     try parseHex("FB90529615FA52790E2B2E24C32A482DBF9F969C3FDC2726ED0A64A40962BF00", &expected_hash);
-    
+
     // Create ledger with real values
     const test_ledger = ledger.Ledger{
         .sequence = 11900686,
@@ -113,16 +111,16 @@ test "HASH VALIDATION 3: ledger hash against real network" {
         .close_flags = 0,
         .parent_close_time = 815078232,
     };
-    
+
     // Calculate hash with our algorithm
     const calculated_hash = test_ledger.calculateHash();
-    
+
     std.debug.print("\n", .{});
     std.debug.print("🔴 HASH VALIDATION 3: Ledger Hash Calculation\n", .{});
     std.debug.print("   Real hash:       {any}...\n", .{expected_hash[0..8]});
     std.debug.print("   Calculated hash: {any}...\n", .{calculated_hash[0..8]});
     std.debug.print("\n", .{});
-    
+
     // Compare
     if (std.mem.eql(u8, &expected_hash, &calculated_hash)) {
         std.debug.print("   ✅ HASHES MATCH! Algorithm is correct!\n", .{});
@@ -144,10 +142,10 @@ test "HASH VALIDATION 3: ledger hash against real network" {
 
 test "HASH VALIDATION 4: account state merkle root" {
     // Real ledger account_hash: A569ACFF4EB95A65B8FD3A9A7C0E68EE17A96EA051896A3F235863ED776ACBAE
-    
+
     var expected_account_hash: [32]u8 = undefined;
     try parseHex("A569ACFF4EB95A65B8FD3A9A7C0E68EE17A96EA051896A3F235863ED776ACBAE", &expected_account_hash);
-    
+
     std.debug.print("\n", .{});
     std.debug.print("🔴 HASH VALIDATION 4: Account State Hash\n", .{});
     std.debug.print("   Real account_hash: {any}...\n", .{expected_account_hash[0..8]});
@@ -167,14 +165,14 @@ test "HASH VALIDATION 5: SHA-512 Half smoke test" {
     // Test our SHA-512 Half against known test vector
     const test_input = "hello";
     const our_hash = crypto.Hash.sha512Half(test_input);
-    
+
     // Calculate expected
     var full_hash: [64]u8 = undefined;
     std.crypto.hash.sha2.Sha512.hash(test_input, &full_hash, .{});
-    
+
     // First 32 bytes should match
     try std.testing.expectEqualSlices(u8, full_hash[0..32], &our_hash);
-    
+
     std.debug.print("✅ HASH VALIDATION 5: SHA-512 Half implementation correct\n", .{});
 }
 
@@ -186,13 +184,13 @@ test "HASH VALIDATION 6: big-endian encoding" {
     const allocator = std.testing.allocator;
     var ser = try serialization.Serializer.init(allocator);
     defer ser.deinit();
-    
+
     // XRPL uses big-endian (network byte order)
     const test_value: u32 = 0x12345678;
     try ser.addUInt32(.sequence, test_value);
-    
+
     const result = ser.finish();
-    
+
     // After type/field byte, should be big-endian bytes
     // 0x12 0x34 0x56 0x78
     if (result.len >= 5) {
@@ -201,7 +199,7 @@ test "HASH VALIDATION 6: big-endian encoding" {
         try std.testing.expectEqual(@as(u8, 0x34), bytes[1]);
         try std.testing.expectEqual(@as(u8, 0x56), bytes[2]);
         try std.testing.expectEqual(@as(u8, 0x78), bytes[3]);
-        
+
         std.debug.print("✅ HASH VALIDATION 6: Big-endian encoding correct\n", .{});
     }
 }
@@ -218,15 +216,15 @@ test "HASH VALIDATION 7: XRP amount bit layout" {
     //
     // For 100 XRP (100,000,000 drops):
     // Binary: 0100_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0101_1111_0101_1110_0001_0000_0000_0000
-    
+
     const amount_drops: u64 = 100_000_000;
     const encoded = amount_drops | (1 << 62); // Set positive bit
-    
+
     // Verify bit 62 is set
     try std.testing.expect((encoded & (1 << 62)) != 0);
     // Verify bit 63 is not set
     try std.testing.expect((encoded & (1 << 63)) == 0);
-    
+
     std.debug.print("✅ HASH VALIDATION 7: XRP amount bit layout understood\n", .{});
     std.debug.print("   100 XRP encoded: 0x{X:0>16}\n", .{encoded});
     std.debug.print("⚠️  TODO: Validate this matches XRPL serialization exactly\n", .{});
@@ -242,7 +240,7 @@ test "HASH VALIDATION 8: IOU amount encoding format" {
     // Bit 62: 1 (not XRP indicator)
     // Bits 61-54: Exponent (biased by -97)
     // Bits 53-0: Mantissa (54 bits of precision)
-    
+
     std.debug.print("\n", .{});
     std.debug.print("⚠️  HASH VALIDATION 8: IOU Amount Encoding\n", .{});
     std.debug.print("   Format: Sign(1) | NotXRP(1) | Exp(8) | Mantissa(54)\n", .{});
@@ -267,7 +265,7 @@ test "HASH VALIDATION 9: canonical field ordering" {
     // 7. Hashes
     //
     // Within each group: Sorted by field code
-    
+
     std.debug.print("\n", .{});
     std.debug.print("⚠️  HASH VALIDATION 9: Field Ordering\n", .{});
     std.debug.print("   XRPL requires canonical field order\n", .{});
@@ -291,7 +289,7 @@ test "HASH VALIDATION 10: transaction signing data" {
     // 2. Add signing prefix if needed
     // 3. Hash to get signing data
     // 4. Verify signature against this hash
-    
+
     std.debug.print("\n", .{});
     std.debug.print("⚠️  HASH VALIDATION 10: Signing Data\n", .{});
     std.debug.print("   Signing data = Hash(Serialized TX without signature)\n", .{});
@@ -333,4 +331,3 @@ test "HASH VALIDATION SUMMARY" {
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
 }
-

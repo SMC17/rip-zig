@@ -8,7 +8,7 @@ pub const ValidatorManager = struct {
     allocator: std.mem.Allocator,
     validators: std.ArrayList(Validator),
     unl: std.ArrayList(consensus.ValidatorInfo),
-    
+
     pub fn init(allocator: std.mem.Allocator) !ValidatorManager {
         return ValidatorManager{
             .allocator = allocator,
@@ -16,7 +16,7 @@ pub const ValidatorManager = struct {
             .unl = try std.ArrayList(consensus.ValidatorInfo).initCapacity(allocator, 0),
         };
     }
-    
+
     pub fn deinit(self: *ValidatorManager) void {
         for (self.validators.items) |*validator| {
             self.allocator.free(validator.manifest_data);
@@ -24,12 +24,12 @@ pub const ValidatorManager = struct {
         self.validators.deinit(self.allocator);
         self.unl.deinit(self.allocator);
     }
-    
+
     /// Load UNL from file or URL
     pub fn loadUNL(self: *ValidatorManager, source: []const u8) !void {
         // TODO: Implement actual UNL loading from vl.ripple.com or file
         _ = source;
-        
+
         // For now, add some default testnet validators
         const default_validators = [_]consensus.ValidatorInfo{
             .{
@@ -58,22 +58,22 @@ pub const ValidatorManager = struct {
                 .is_trusted = true,
             },
         };
-        
+
         for (default_validators) |v| {
             try self.unl.append(self.allocator, v);
         }
     }
-    
+
     /// Add a validator
     pub fn addValidator(self: *ValidatorManager, validator: Validator) !void {
         try self.validators.append(self.allocator, validator);
     }
-    
+
     /// Get trusted validators (UNL)
     pub fn getTrustedValidators(self: *const ValidatorManager) []const consensus.ValidatorInfo {
         return self.unl.items;
     }
-    
+
     /// Verify a validator's manifest
     pub fn verifyManifest(self: *ValidatorManager, manifest: []const u8) !bool {
         // TODO: Implement manifest verification
@@ -91,15 +91,10 @@ pub const Validator = struct {
     sequence: u32,
     manifest_data: []u8,
     is_trusted: bool,
-    
+
     /// Verify validator signature
     pub fn verifySignature(self: *const Validator, data: []const u8, signature: []const u8) !bool {
-        return try crypto.KeyPair.verify(
-            &self.signing_key,
-            data,
-            signature,
-            .ed25519
-        );
+        return try crypto.KeyPair.verify(&self.signing_key, data, signature, .ed25519);
     }
 };
 
@@ -107,10 +102,9 @@ test "validator manager" {
     const allocator = std.testing.allocator;
     var manager = try ValidatorManager.init(allocator);
     defer manager.deinit();
-    
+
     try manager.loadUNL("default");
-    
+
     const trusted = manager.getTrustedValidators();
     try std.testing.expectEqual(@as(usize, 5), trusted.len);
 }
-

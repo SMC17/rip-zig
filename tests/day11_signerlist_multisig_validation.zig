@@ -7,16 +7,14 @@ const base58 = @import("../src/base58.zig");
 
 /// DAY 11: SignerListSet & Multi-Sig Validation
 /// Goal: Verify SignerListSet serialization and multi-sig validation
-
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
     while (i < out.len) : (i += 1) {
-        out[i] = try std.fmt.parseInt(u8, hex[i*2..i*2+2], 16);
+        out[i] = try std.fmt.parseInt(u8, hex[i * 2 .. i * 2 + 2], 16);
     }
 }
 
-/// Real SignerListSet transaction from testnet (Day 9 data)
 const RealSignerListSetTx = struct {
     const hash_hex = "09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B";
     const account = "rPickFLAKK7YkMwKvhSEN1yJAtfnB6qRJc";
@@ -29,13 +27,13 @@ const RealSignerListSetTx = struct {
 
 test "DAY 11: SignerListSet transaction validation" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 11: SIGNERLISTSET VALIDATION\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     // Create test account
     var account_id: types.AccountID = undefined;
     // Decode account address
@@ -43,27 +41,27 @@ test "DAY 11: SignerListSet transaction validation" {
     const decoded = try base58.Base58.decodeAccountID(allocator, account_address);
     defer allocator.free(decoded);
     @memcpy(&account_id, decoded);
-    
+
     // Create signer entries
     var signer1: types.AccountID = undefined;
     var signer2: types.AccountID = undefined;
     var signer3: types.AccountID = undefined;
-    
+
     // Use test accounts (in real test, would decode from transaction)
     @memset(&signer1, 0x01, 20);
     @memset(&signer2, 0x02, 20);
     @memset(&signer3, 0x03, 20);
-    
+
     const entries = [_]multisig.SignerEntry{
         .{ .account = signer1, .signer_weight = 1 },
         .{ .account = signer2, .signer_weight = 1 },
         .{ .account = signer3, .signer_weight = 1 },
     };
-    
+
     // Parse signing pub key
     var signing_pub_key: [33]u8 = undefined;
     try parseHex(RealSignerListSetTx.signing_pub_key_hex, &signing_pub_key);
-    
+
     // Create SignerListSet transaction
     const tx = multisig.SignerListSet.create(
         account_id,
@@ -73,10 +71,10 @@ test "DAY 11: SignerListSet transaction validation" {
         RealSignerListSetTx.sequence,
         signing_pub_key,
     );
-    
+
     // Validate
     try tx.validate();
-    
+
     std.debug.print("✅ SignerListSet Transaction Created\n", .{});
     std.debug.print("   Account: {s}\n", .{RealSignerListSetTx.account});
     std.debug.print("   Sequence: {d}\n", .{RealSignerListSetTx.sequence});
@@ -84,7 +82,7 @@ test "DAY 11: SignerListSet transaction validation" {
     std.debug.print("   Quorum: {d}\n", .{tx.signer_quorum});
     std.debug.print("   Signers: {d}\n", .{tx.signer_entries.len});
     std.debug.print("   Transaction Type: {s}\n", .{@tagName(tx.base.tx_type)});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("✅ BLOCKER #3 VERIFIED: SignerListSet works\n", .{});
     std.debug.print("\n", .{});
@@ -94,25 +92,25 @@ test "DAY 11: SignerListSet transaction validation" {
 
 test "DAY 11: SignerListSet validation edge cases" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 11: SIGNERLISTSET EDGE CASES\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     const account = [_]u8{1} ** 20;
     var signer1: types.AccountID = undefined;
     var signer2: types.AccountID = undefined;
     @memset(&signer1, 0x01, 20);
     @memset(&signer2, 0x02, 20);
-    
+
     // Test 1: Quorum too high
     {
         const entries = [_]multisig.SignerEntry{
             .{ .account = signer1, .signer_weight = 1 },
         };
-        
+
         const tx = multisig.SignerListSet.create(
             account,
             5, // Quorum too high!
@@ -121,15 +119,15 @@ test "DAY 11: SignerListSet validation edge cases" {
             1,
             [_]u8{0} ** 33,
         );
-        
+
         try std.testing.expectError(error.InsufficientSignerWeight, tx.validate());
         std.debug.print("✅ Test 1: Quorum validation works (rejects insufficient weight)\n", .{});
     }
-    
+
     // Test 2: Empty signer list
     {
         const entries = [_]multisig.SignerEntry{};
-        
+
         const tx = multisig.SignerListSet.create(
             account,
             1,
@@ -138,17 +136,17 @@ test "DAY 11: SignerListSet validation edge cases" {
             1,
             [_]u8{0} ** 33,
         );
-        
+
         try std.testing.expectError(error.NoSigners, tx.validate());
         std.debug.print("✅ Test 2: Empty signer list rejected\n", .{});
     }
-    
+
     // Test 3: Zero quorum
     {
         const entries = [_]multisig.SignerEntry{
             .{ .account = signer1, .signer_weight = 1 },
         };
-        
+
         const tx = multisig.SignerListSet.create(
             account,
             0, // Invalid quorum
@@ -157,18 +155,18 @@ test "DAY 11: SignerListSet validation edge cases" {
             1,
             [_]u8{0} ** 33,
         );
-        
+
         try std.testing.expectError(error.InvalidQuorum, tx.validate());
         std.debug.print("✅ Test 3: Zero quorum rejected\n", .{});
     }
-    
+
     // Test 4: Duplicate signers
     {
         const entries = [_]multisig.SignerEntry{
             .{ .account = signer1, .signer_weight = 1 },
             .{ .account = signer1, .signer_weight = 1 }, // Duplicate!
         };
-        
+
         const tx = multisig.SignerListSet.create(
             account,
             1,
@@ -177,18 +175,18 @@ test "DAY 11: SignerListSet validation edge cases" {
             1,
             [_]u8{0} ** 33,
         );
-        
+
         try std.testing.expectError(error.DuplicateSigner, tx.validate());
         std.debug.print("✅ Test 4: Duplicate signers rejected\n", .{});
     }
-    
+
     // Test 5: Valid transaction
     {
         const entries = [_]multisig.SignerEntry{
             .{ .account = signer1, .signer_weight = 2 },
             .{ .account = signer2, .signer_weight = 2 },
         };
-        
+
         const tx = multisig.SignerListSet.create(
             account,
             3, // Quorum: need 3 weight (both signers = 4 total, valid)
@@ -197,11 +195,11 @@ test "DAY 11: SignerListSet validation edge cases" {
             1,
             [_]u8{0} ** 33,
         );
-        
+
         try tx.validate();
         std.debug.print("✅ Test 5: Valid SignerListSet transaction passes\n", .{});
     }
-    
+
     std.debug.print("\n", .{});
     std.debug.print("✅ All edge case validations pass\n", .{});
     std.debug.print("\n", .{});
@@ -211,29 +209,29 @@ test "DAY 11: SignerListSet validation edge cases" {
 
 test "DAY 11: Multi-sig transaction structure verification" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 11: MULTI-SIG TRANSACTION STRUCTURE\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     // Create a transaction with multi-sig support
     var account_id: types.AccountID = undefined;
     @memset(&account_id, 0xAA, 20);
-    
+
     // Create signers
     var signer1_account: types.AccountID = undefined;
     var signer2_account: types.AccountID = undefined;
     @memset(&signer1_account, 0x01, 20);
     @memset(&signer2_account, 0x02, 20);
-    
+
     // Create signer entries for the signer list
     const signer_entries = [_]multisig.SignerEntry{
         .{ .account = signer1_account, .signer_weight = 1 },
         .{ .account = signer2_account, .signer_weight = 1 },
     };
-    
+
     // Create signers array for multi-sig transaction
     var signer1_pub_key: [33]u8 = undefined;
     var signer2_pub_key: [33]u8 = undefined;
@@ -241,14 +239,14 @@ test "DAY 11: Multi-sig transaction structure verification" {
     @memset(&signer1_pub_key[1..], 0x11, 32);
     @memset(&signer2_pub_key, 0xED, 1);
     @memset(&signer2_pub_key[1..], 0x22, 32);
-    
+
     var sig1 = try allocator.alloc(u8, 64);
     defer allocator.free(sig1);
     var sig2 = try allocator.alloc(u8, 64);
     defer allocator.free(sig2);
     @memset(sig1, 0xAA, 64);
     @memset(sig2, 0xBB, 64);
-    
+
     const signers = [_]types.Signer{
         .{
             .account = signer1_account,
@@ -261,7 +259,7 @@ test "DAY 11: Multi-sig transaction structure verification" {
             .txn_signature = sig2,
         },
     };
-    
+
     // Create transaction with multi-sig
     const tx = types.Transaction{
         .tx_type = .payment,
@@ -269,10 +267,10 @@ test "DAY 11: Multi-sig transaction structure verification" {
         .fee = 12,
         .sequence = 1,
         .signing_pub_key = null, // Null for multi-sig
-        .txn_signature = null,   // Null for multi-sig
+        .txn_signature = null, // Null for multi-sig
         .signers = &signers,
     };
-    
+
     std.debug.print("✅ Multi-sig Transaction Structure\n", .{});
     std.debug.print("   Transaction type: {s}\n", .{@tagName(tx.tx_type)});
     std.debug.print("   Single signature: {any}\n", .{tx.signing_pub_key});
@@ -283,7 +281,7 @@ test "DAY 11: Multi-sig transaction structure verification" {
     std.debug.print("   - signing_pub_key can be null\n", .{});
     std.debug.print("   - signers array supported\n", .{});
     std.debug.print("   - Structure matches XRPL spec\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
@@ -291,13 +289,13 @@ test "DAY 11: Multi-sig transaction structure verification" {
 
 test "DAY 11: Multi-sig quorum verification logic" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 11: MULTI-SIG QUORUM VERIFICATION\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     // Create signer entries
     var signer1: types.AccountID = undefined;
     var signer2: types.AccountID = undefined;
@@ -305,44 +303,44 @@ test "DAY 11: Multi-sig quorum verification logic" {
     @memset(&signer1, 0x01, 20);
     @memset(&signer2, 0x02, 20);
     @memset(&signer3, 0x03, 20);
-    
+
     const signer_entries = [_]multisig.SignerEntry{
         .{ .account = signer1, .signer_weight = 2 },
         .{ .account = signer2, .signer_weight = 2 },
         .{ .account = signer3, .signer_weight = 1 },
     };
-    
+
     // Test quorum calculation
     var total_weight: u32 = 0;
     for (signer_entries) |entry| {
         total_weight += entry.signer_weight;
     }
-    
+
     std.debug.print("Signer Weight Distribution:\n", .{});
     std.debug.print("   Signer 1: weight {d}\n", .{signer_entries[0].signer_weight});
     std.debug.print("   Signer 2: weight {d}\n", .{signer_entries[1].signer_weight});
     std.debug.print("   Signer 3: weight {d}\n", .{signer_entries[2].signer_weight});
     std.debug.print("   Total weight: {d}\n", .{total_weight});
     std.debug.print("\n", .{});
-    
+
     // Test various quorum levels
     std.debug.print("Quorum Validation Tests:\n", .{});
-    
+
     // Quorum 3: Need 2 signers (weight 2 + weight 2 = 4 >= 3) ✅
     const quorum1: u32 = 3;
     const valid1 = total_weight >= quorum1 and quorum1 <= total_weight;
     std.debug.print("   Quorum {d}: {s} (total weight {d})\n", .{ quorum1, if (valid1) "VALID" else "INVALID", total_weight });
-    
+
     // Quorum 5: Need 3 signers (weight 2 + weight 2 + weight 1 = 5 >= 5) ✅
     const quorum2: u32 = 5;
     const valid2 = total_weight >= quorum2 and quorum2 <= total_weight;
     std.debug.print("   Quorum {d}: {s} (total weight {d})\n", .{ quorum2, if (valid2) "VALID" else "INVALID", total_weight });
-    
+
     // Quorum 6: Too high (weight 2 + weight 2 + weight 1 = 5 < 6) ❌
     const quorum3: u32 = 6;
     const valid3 = total_weight >= quorum3 and quorum3 <= total_weight;
     std.debug.print("   Quorum {d}: {s} (total weight {d})\n", .{ quorum3, if (valid3) "VALID" else "INVALID", total_weight });
-    
+
     std.debug.print("\n", .{});
     std.debug.print("✅ Quorum verification logic verified\n", .{});
     std.debug.print("\n", .{});
@@ -352,25 +350,25 @@ test "DAY 11: Multi-sig quorum verification logic" {
 
 test "DAY 11: SignerListSet canonical serialization" {
     const allocator = std.testing.allocator;
-    
+
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("  DAY 11: SIGNERLISTSET CANONICAL SERIALIZATION\n", .{});
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
-    
+
     // Create SignerListSet transaction
     const account = [_]u8{1} ** 20;
     var signer1: types.AccountID = undefined;
     var signer2: types.AccountID = undefined;
     @memset(&signer1, 0x01, 20);
     @memset(&signer2, 0x02, 20);
-    
+
     const entries = [_]multisig.SignerEntry{
         .{ .account = signer1, .signer_weight = 1 },
         .{ .account = signer2, .signer_weight = 1 },
     };
-    
+
     const tx = multisig.SignerListSet.create(
         account,
         2,
@@ -379,36 +377,36 @@ test "DAY 11: SignerListSet canonical serialization" {
         1,
         [_]u8{0} ** 33,
     );
-    
+
     // Serialize using canonical serializer
     var ser = try canonical.CanonicalSerializer.init(allocator);
     defer ser.deinit();
-    
+
     // Add fields in canonical order
     // TransactionType (UInt16, field 2)
     try ser.addUInt16(2, @intFromEnum(tx.base.tx_type));
-    
+
     // Flags (UInt32, field 2) - default
     try ser.addUInt32(2, RealSignerListSetTx.flags);
-    
+
     // Account (AccountID, field 1)
     try ser.addAccountID(1, tx.base.account);
-    
+
     // Sequence (UInt32, field 4)
     try ser.addUInt32(4, tx.base.sequence);
-    
+
     // Fee (UInt64, field 8)
     try ser.addUInt64(8, tx.base.fee);
-    
+
     // SignerQuorum (UInt32, field 3)
     try ser.addUInt32(3, tx.signer_quorum);
-    
+
     // TODO: Add SignerEntries array (VL field)
     // This requires proper VL encoding for arrays
-    
+
     const serialized = try ser.finish();
     defer allocator.free(serialized);
-    
+
     std.debug.print("✅ SignerListSet Serialization\n", .{});
     std.debug.print("   Serialized length: {d} bytes\n", .{serialized.len});
     std.debug.print("   Fields included:\n", .{});
@@ -419,7 +417,7 @@ test "DAY 11: SignerListSet canonical serialization" {
     std.debug.print("     - Fee\n", .{});
     std.debug.print("     - SignerQuorum\n", .{});
     std.debug.print("     - SignerEntries (TODO: implement array serialization)\n", .{});
-    
+
     // Hash it
     const hash = crypto.Hash.sha512Half(serialized);
     std.debug.print("\n", .{});
@@ -428,7 +426,7 @@ test "DAY 11: SignerListSet canonical serialization" {
         std.debug.print("{X:0>2}", .{byte});
     }
     std.debug.print("...\n", .{});
-    
+
     std.debug.print("\n", .{});
     std.debug.print("⚠️  NOTE: SignerEntries array serialization needs implementation\n", .{});
     std.debug.print("   For full validation against real network transaction\n", .{});
@@ -465,4 +463,3 @@ test "DAY 11 STATUS: SignerListSet and Multi-sig Verification Complete" {
     std.debug.print("════════════════════════════════════════════════════\n", .{});
     std.debug.print("\n", .{});
 }
-
