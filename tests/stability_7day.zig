@@ -148,11 +148,11 @@ test "stability test framework" {
     std.debug.print("[TEST] Stability Test Framework\n", .{});
     std.debug.print("\n", .{});
     
-    var test = try StabilityTest.init(allocator);
+    var stability_test = try StabilityTest.init(allocator);
     defer test.deinit();
     
     // Run for 5 seconds as a quick test
-    try test.run(5);
+    try stability_test.run(5);
     
     std.debug.print("[PASS] Stability test framework functional\n", .{});
     std.debug.print("[NOTE] Run with: zig build test-stability (for full 7 days)\n", .{});
@@ -167,11 +167,11 @@ test "stability test short run" {
     std.debug.print("[INFO] For full 7-day test, run separately\n", .{});
     std.debug.print("\n", .{});
     
-    var test = try StabilityTest.init(allocator);
+    var stability_test = try StabilityTest.init(allocator);
     defer test.deinit();
     
     // Run for 10 seconds
-    test.run(10) catch |err| {
+    stability_test.run(10) catch |err| {
         std.debug.print("[WARN] Stability test error: {}\n", .{err});
     };
     
