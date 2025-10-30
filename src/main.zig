@@ -87,11 +87,11 @@ pub const Node = struct {
         
         // Demonstrate core functionality
         std.debug.print("Core Systems Ready:\n", .{});
-        std.debug.print("  ✅ Consensus engine initialized\n", .{});
-        std.debug.print("  ✅ Transaction processor ready\n", .{});
-        std.debug.print("  ✅ Ledger manager active\n", .{});
-        std.debug.print("  ✅ RPC server configured\n", .{});
-        std.debug.print("  ✅ Network layer available\n", .{});
+        std.debug.print("  [OK] Consensus engine initialized\n", .{});
+        std.debug.print("  [OK] Transaction processor ready\n", .{});
+        std.debug.print("  [OK] Ledger manager active\n", .{});
+        std.debug.print("  [OK] RPC server configured\n", .{});
+        std.debug.print("  [OK] Network layer available\n", .{});
         std.debug.print("\n", .{});
         std.debug.print("Current ledger: #{d}\n", .{self.ledger_manager.getCurrentLedger().sequence});
         std.debug.print("\n", .{});

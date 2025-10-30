@@ -153,7 +153,7 @@ test "canonical ordering" {
     // Fields should be sorted: UInt16 (type 0x10) before UInt32 (0x20) before UInt64 (0x60)
     // So TransactionType should come first
     
-    std.debug.print("✅ Canonical field ordering implemented\n", .{});
+    std.debug.print("[PASS] Canonical field ordering implemented\n", .{});
     std.debug.print("   Output length: {d} bytes\n", .{result.len});
 }
 
@@ -173,6 +173,6 @@ test "field sorting" {
     try std.testing.expectEqual(@as(u8, 0x20), fields[1].type_code);
     try std.testing.expectEqual(@as(u8, 0x60), fields[2].type_code);
     
-    std.debug.print("✅ Field sorting works correctly\n", .{});
+    std.debug.print("[PASS] Field sorting works correctly\n", .{});
 }
 

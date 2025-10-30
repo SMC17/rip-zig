@@ -218,7 +218,7 @@ test "ripemd160 known vector" {
     
     try std.testing.expectEqualSlices(u8, &expected, &output);
     
-    std.debug.print("✅ RIPEMD-160 matches known test vector\n", .{});
+    std.debug.print("[PASS] RIPEMD-160 matches known test vector\n", .{});
     std.debug.print("   Input: empty string\n", .{});
     std.debug.print("   Hash: {any}...\n", .{output[0..8]});
 }

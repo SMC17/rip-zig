@@ -154,7 +154,7 @@ test "secp256k1 DER parsing" {
     try std.testing.expect(parsed.r.len == 32);
     try std.testing.expect(parsed.s.len == 32);
     
-    std.debug.print("✅ Can parse DER signatures\n", .{});
+    std.debug.print("[PASS] Can parse DER signatures\n", .{});
     std.debug.print("   r: {any}...\n", .{parsed.r[0..8]});
     std.debug.print("   s: {any}...\n", .{parsed.s[0..8]});
 }

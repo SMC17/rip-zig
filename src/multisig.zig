@@ -157,7 +157,7 @@ test "signer list set validation" {
     
     try tx.validate();
     
-    std.debug.print("✅ SignerListSet transaction validates\n", .{});
+    std.debug.print("[PASS] SignerListSet transaction validates\n", .{});
     std.debug.print("   Signers: {d}, Quorum: {d}\n", .{entries.len, tx.signer_quorum});
 }
 
@@ -179,6 +179,6 @@ test "multi-sig quorum validation" {
     
     try std.testing.expectError(error.InsufficientSignerWeight, tx.validate());
     
-    std.debug.print("✅ Multi-sig quorum validation works\n", .{});
+    std.debug.print("[PASS] Multi-sig quorum validation works\n", .{});
 }
 
