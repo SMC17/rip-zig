@@ -2,9 +2,6 @@ const std = @import("std");
 const base58 = @import("../src/base58.zig");
 const types = @import("../src/types.zig");
 
-/// WEEK 3 DAYS 15-16: RPC Format Matching Validation
-/// Goal: Compare our RPC responses with real rippled responses and fix mismatches
-/// Real rippled server_info response structure
 const RealServerInfo = struct {
     // Required fields from real rippled
     const fields = .{
@@ -32,7 +29,6 @@ const RealServerInfo = struct {
     // - peers count
 };
 
-/// Real rippled ledger response structure
 const RealLedgerResponse = struct {
     const fields = .{
         "ledger_index", // Can be string or number

@@ -3,10 +3,6 @@ const crypto = @import("crypto.zig");
 const serialization = @import("serialization.zig");
 const types = @import("types.zig");
 
-/// CRITICAL HASH VALIDATION TESTS
-/// These determine if our implementation is compatible with real XRPL
-/// MUST pass before launch
-/// Hash: 09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B
 const RealTransaction = struct {
     const hash_hex = "09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B";
     const account = "rPickFLAKK7YkMwKvhSEN1yJAtfnB6qRJc";

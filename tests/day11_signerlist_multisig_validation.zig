@@ -5,8 +5,6 @@ const canonical = @import("../src/canonical.zig");
 const crypto = @import("../src/crypto.zig");
 const base58 = @import("../src/base58.zig");
 
-/// DAY 11: SignerListSet & Multi-Sig Validation
-/// Goal: Verify SignerListSet serialization and multi-sig validation
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;

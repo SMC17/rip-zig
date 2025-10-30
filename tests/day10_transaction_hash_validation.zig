@@ -4,8 +4,6 @@ const canonical = @import("../src/canonical.zig");
 const types = @import("../src/types.zig");
 const base58 = @import("../src/base58.zig");
 
-/// DAY 10: Transaction Hash Validation Against Real XRPL
-/// Goal: Validate that our canonical serialization produces correct transaction hashes
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
@@ -22,8 +20,6 @@ fn hexToLowerBytes(hex: []const u8) ![]u8 {
     return result;
 }
 
-/// This is a simpler transaction type we can validate
-/// Source: Testnet ledger (simplified example - we'll fetch real one)
 const TestTransaction = struct {
     // Transaction hash we're trying to match
     const expected_hash_hex = "0000000000000000000000000000000000000000000000000000000000000000";

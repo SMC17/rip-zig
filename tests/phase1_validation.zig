@@ -7,9 +7,7 @@ const ledger = @import("ledger.zig");
 const network = @import("network.zig");
 
 ///
-/// FAILURES are GOOD - they show us what to fix
 ///
-/// Test results go into DISCOVERED_ISSUES.md
 
 // Real testnet data from ledger #11900686
 const TestData = struct {
@@ -28,7 +26,6 @@ const TestData = struct {
     const real_tx_hash = "09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B";
 };
 
-/// Helper: Parse hex string to bytes
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
 

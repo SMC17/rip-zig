@@ -7,7 +7,7 @@ const multisig = @import("../src/multisig.zig");
 const ripemd160 = @import("../src/ripemd160.zig");
 const ledger = @import("../src/ledger.zig");
 
-/// Goal: Run all validation tests, document results, fix issues
+
 
 const ValidationResult = struct {
     name: []const u8,

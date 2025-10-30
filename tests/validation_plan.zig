@@ -4,10 +4,6 @@ const base58 = @import("base58.zig");
 const crypto = @import("crypto.zig");
 const types = @import("types.zig");
 
-/// CRITICAL VALIDATION TESTS
-/// These MUST pass before we launch
-/// Testing against REAL XRPL network data
-
 // Known real XRPL addresses to test against
 const KNOWN_ADDRESSES = [_][]const u8{
     // Add real testnet addresses here
@@ -80,8 +76,6 @@ test "VALIDATION: state hash matches real ledger" {
     std.debug.print("TODO: Implement state hash validation test\n", .{});
 }
 
-/// VALIDATION SUITE RUNNER
-/// Run this before every launch attempt
 pub fn runValidationSuite() !void {
     std.debug.print("\n=== XRPL NETWORK VALIDATION SUITE ===\n\n", .{});
 

@@ -3,8 +3,6 @@ const crypto = @import("crypto.zig");
 const canonical = @import("canonical.zig");
 const types = @import("types.zig");
 
-/// DAY 10: CRITICAL - Transaction hash validation against real XRPL
-/// This determines if our serialization is actually compatible
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;

@@ -3,8 +3,6 @@ const crypto = @import("../src/crypto.zig");
 const ledger = @import("../src/ledger.zig");
 const canonical = @import("../src/canonical.zig");
 
-/// DAY 10: Ledger Hash Validation Against Real XRPL Network
-/// Goal: Verify our ledger hash calculation matches real XRPL ledger hashes
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
@@ -13,7 +11,6 @@ fn parseHex(hex: []const u8, out: []u8) !void {
     }
 }
 
-/// Ledger #11928994
 const RealLedger = struct {
     const sequence: u32 = 11928994;
     const ledger_hash_hex = "5FDB6D75C20D3E5144E62A4F13D3926F51230D759CBE7CD4D9B58315C5EE8566";

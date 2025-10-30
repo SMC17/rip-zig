@@ -4,9 +4,7 @@ const types = @import("types.zig");
 const serialization = @import("serialization.zig");
 const base58 = @import("base58.zig");
 
-/// PHASE 1: VALIDATION AGAINST REAL XRPL TESTNET DATA
 ///
-/// EVERY test that fails reveals a bug we need to fix
 const REAL_LEDGER_DATA = struct {
     const sequence: u32 = 11900686;
     const ledger_hash = "FB90529615FA52790E2B2E24C32A482DBF9F969C3FDC2726ED0A64A40962BF00";
@@ -132,8 +130,6 @@ test "VALIDATION: server info response structure" {
     std.debug.print("   - Missing complete_ledgers range format\n", .{});
 }
 
-/// VALIDATION SUMMARY
-/// Run this to see overall validation status
 pub fn printValidationStatus() void {
     std.debug.print("\n", .{});
     std.debug.print("════════════════════════════════════════\n", .{});

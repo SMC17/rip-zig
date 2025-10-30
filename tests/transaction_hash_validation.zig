@@ -3,14 +3,8 @@ const crypto = @import("crypto.zig");
 const canonical = @import("canonical.zig");
 const types = @import("types.zig");
 
-/// DAY 9 CRITICAL TEST: Transaction Hash Validation
 ///
-/// Our canonical serialization MUST produce the same hash as the real network
 ///
-/// Hash: 09D0D3C0AB0E6D8EBB3117C2FF1DD72F063818F528AF54A4553C8541DD2E8B5B
-/// Account: rPickFLAKK7YkMwKvhSEN1yJAtfnB6qRJc
-/// Sequence: 11900682
-/// Fee: 7500
 fn parseHex(hex: []const u8, out: []u8) !void {
     if (hex.len != out.len * 2) return error.InvalidHexLength;
     var i: usize = 0;
