@@ -46,7 +46,7 @@ pub const MerkleTree = struct {
         
         // Build up the tree
         while (current_level.items.len > 1) {
-            var next_level = std.ArrayList([32]u8).init(self.allocator);
+            var next_level = std.ArrayList([32]u8).initCapacity(self.allocator, current_level.items.len / 2 + 1) catch return [_]u8{0} ** 32;
             
             var i: usize = 0;
             while (i < current_level.items.len) : (i += 2) {
