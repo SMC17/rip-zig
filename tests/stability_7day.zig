@@ -3,10 +3,6 @@ const ledger = @import("../src/ledger.zig");
 const ledger_sync = @import("../src/ledger_sync.zig");
 const peer_protocol = @import("../src/peer_protocol.zig");
 
-/// 7-Day Stability Test Framework
-/// 
-/// This test framework is designed to run continuously for 7 days
-/// to verify system stability, memory management, and correctness
 
 pub const StabilityTest = struct {
     allocator: std.mem.Allocator,
