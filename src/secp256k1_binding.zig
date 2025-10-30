@@ -11,24 +11,33 @@ const types = @import("types.zig");
 /// Build configuration: link to libsecp256k1
 /// In build.zig, add: exe.linkSystemLibrary("secp256k1");
 
+// Opaque types from libsecp256k1
+// These are actual structs from the C library - we use extern struct to match C ABI
+const secp256k1_pubkey = extern struct {
+    data: [64]u8 align(16), // Actual size from libsecp256k1 source
+};
+const secp256k1_ecdsa_signature = extern struct {
+    data: [64]u8 align(16), // Actual size from libsecp256k1 source
+};
+
 // C library declarations
 extern fn secp256k1_context_create(flags: c_uint) ?*anyopaque;
 extern fn secp256k1_context_destroy(ctx: ?*anyopaque) void;
 extern fn secp256k1_ecdsa_verify(
     ctx: ?*const anyopaque,
-    sig: [*c]const u8,
+    sig: ?*const secp256k1_ecdsa_signature,
     msg32: [*c]const u8,
-    pubkey: [*c]const u8,
+    pubkey: ?*const secp256k1_pubkey,
 ) c_int;
 extern fn secp256k1_ec_pubkey_parse(
     ctx: ?*const anyopaque,
-    pubkey: [*c]u8,
+    pubkey: ?*secp256k1_pubkey,
     input: [*c]const u8,
     inputlen: usize,
 ) c_int;
 extern fn secp256k1_ecdsa_signature_parse_der(
     ctx: ?*const anyopaque,
-    sig: [*c]u8,
+    sig: ?*secp256k1_ecdsa_signature,
     input: [*c]const u8,
     inputlen: usize,
 ) c_int;
@@ -74,8 +83,8 @@ pub fn verifySignature(
     
     const ctx = global_context orelse return error.ContextNotInitialized;
     
-    // Parse public key
-    var pubkey: [64]u8 = undefined;
+    // Parse public key (libsecp256k1 uses opaque structs)
+    var pubkey: secp256k1_pubkey = undefined;
     const pubkey_result = secp256k1_ec_pubkey_parse(
         ctx,
         &pubkey,
@@ -86,8 +95,8 @@ pub fn verifySignature(
         return error.InvalidPublicKey;
     }
     
-    // Parse DER signature
-    var signature: [64]u8 = undefined;
+    // Parse DER signature (libsecp256k1 uses opaque structs)
+    var signature: secp256k1_ecdsa_signature = undefined;
     const sig_result = secp256k1_ecdsa_signature_parse_der(
         ctx,
         &signature,

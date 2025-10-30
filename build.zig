@@ -17,6 +17,10 @@ pub fn build(b: *std.Build) void {
         .root_module = main_module,
     });
     exe.linkLibC();
+    
+    // Link secp256k1 library for ECDSA signature verification
+    // Install: brew install secp256k1 (macOS) or apt-get install libsecp256k1-dev (Linux)
+    exe.linkSystemLibrary("secp256k1");
 
     b.installArtifact(exe);
 
@@ -40,6 +44,8 @@ pub fn build(b: *std.Build) void {
     const unit_tests = b.addTest(.{
         .root_module = test_module,
     });
+    unit_tests.linkLibC();
+    unit_tests.linkSystemLibrary("secp256k1"); // Link secp256k1 for signature verification tests
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");

@@ -126,7 +126,17 @@ pub const KeyPair = struct {
                 return true;
             },
             .secp256k1 => {
-                return error.NotImplemented;
+                // Use secp256k1 binding for ECDSA verification
+                const secp = @import("secp256k1.zig");
+                
+                // secp256k1 uses compressed (33 bytes) or uncompressed (65 bytes) public keys
+                // XRPL typically uses compressed (33 bytes) with 0x02 or 0x03 prefix
+                if (public_key.len != 33 and public_key.len != 65) {
+                    return false;
+                }
+                
+                // Verify signature
+                return secp.verifySignature(public_key, data, signature) catch false;
             },
         }
     }

@@ -61,13 +61,21 @@ pub const Network = struct {
         }
     }
 
-    /// Connect to a peer
-    pub fn connectPeer(self: *Network, address: []const u8, port: u16) !*Peer {
+    /// Connect to a peer with handshake
+    pub fn connectPeer(self: *Network, address: []const u8, port: u16, node_id: [32]u8, network_id: u32) !*Peer {
         const addr = try std.net.Address.parseIp(address, port);
         const stream = try std.net.tcpConnectToAddress(addr);
 
+        // Perform handshake
+        const peer_proto = @import("peer_protocol.zig");
+        var protocol = peer_proto.PeerProtocol.init(self.allocator, node_id, network_id);
+        const handshake_result = protocol.handshake(&stream) catch |err| {
+            stream.close();
+            return err;
+        };
+
         const peer = Peer{
-            .node_id = [_]u8{0} ** 32,
+            .node_id = handshake_result.peer_id,
             .address = try self.allocator.dupe(u8, address),
             .port = port,
             .public_key = [_]u8{0} ** 33,
@@ -77,7 +85,11 @@ pub const Network = struct {
         };
 
         try self.peers.append(self.allocator, peer);
-        std.debug.print("Connected to peer {}:{d}\n", .{ std.fmt.fmtSliceHexLower(address[0..@min(8, address.len)]), port });
+        std.debug.print("Connected to peer {}:{d} (ledger: {d})\n", .{ 
+            std.fmt.fmtSliceHexLower(address[0..@min(8, address.len)]), 
+            port,
+            handshake_result.peer_ledger_seq 
+        });
 
         return &self.peers.items[self.peers.items.len - 1];
     }
