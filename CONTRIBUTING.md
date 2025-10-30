@@ -1,312 +1,184 @@
 # Contributing to rippled-zig
 
-First off, thank you for considering contributing to rippled-zig! This project aims to become the most advanced, optimized, and secure XRP Ledger implementation, and we need YOUR help to make it happen.
+Thank you for your interest in contributing to rippled-zig! This project aims to become the premier XRP Ledger implementation in Zig, providing a robust, memory-safe, and educational platform for XRPL development.
 
-## 🌟 Why Contribute?
+## Project Vision
 
-- **Learn cutting-edge tech**: Master Zig, blockchain, and distributed systems
-- **Make real impact**: Help build critical financial infrastructure
-- **Join early**: Ground-floor opportunity in an ambitious project
-- **Open recognition**: Your contributions will be celebrated
-- **Shape the future**: Influence design decisions and architecture
+**Primary Goals**:
+1. Achieve full parity with rippled (C++ implementation)
+2. Provide the easiest way to learn XRPL protocol
+3. Demonstrate modern Zig systems programming
+4. Build the go-to layer for XRPL integration
+5. Foster both Zig and XRPL developer communities
 
-## 🎯 Current State & Needs
+**Long-term Vision**:
+- Maintain parity branch tracking latest rippled features
+- Experimental branches for new features and optimizations
+- Spin out specialized projects using rippled-zig as core
+- Become reference implementation for memory-safe blockchain infrastructure
 
-We're **honest about where we are**:
-- ✅ **Core foundation is solid** (types, crypto, ledger management)
-- 🚧 **Networking needs implementation** (our #1 priority)
-- 🚧 **RPC server needs building** (great for web devs)
-- 🚧 **Consensus needs completion** (for distributed systems experts)
-- 🔴 **Not production ready** (but getting there!)
+## Getting Started
 
-See [ROADMAP.md](ROADMAP.md) for detailed status and future plans.
+### Prerequisites
 
-## 🚀 Quick Start
+- Zig 0.15.1 or later
+- Basic understanding of XRPL OR Zig (you'll learn the other!)
+- Git and GitHub account
 
-### 1. Set Up Development Environment
+### First Steps
 
+1. **Fork and clone**:
 ```bash
-# Clone the repository
-git clone https://github.com/SMC17/rip-zig.git
-cd rip-zig
+git clone https://github.com/YOUR_USERNAME/rippled-zig.git
+cd rippled-zig
+```
 
-# Ensure you have Zig 0.15.1+ installed
-zig version
-
-# Build the project
+2. **Build and test**:
+```bash
 zig build
-
-# Run tests (should all pass!)
 zig build test
-
-# Run the daemon
 zig build run
 ```
 
-### 2. Find Something to Work On
+3. **Explore the code**:
+- Start with `src/main.zig` to understand flow
+- Read `src/types.zig` for XRPL fundamentals
+- Check `src/consensus.zig` for BFT algorithm
+- Review tests to see examples
 
-**For Beginners**: Look for issues tagged with:
-- `good-first-issue` - Perfect for newcomers
-- `documentation` - Help improve our docs
-- `testing` - Add test cases
+## How to Contribute
 
-**For Intermediate**: Issues tagged with:
-- `help-wanted` - We need your skills!
-- `feature` - New features to implement
-- `enhancement` - Improvements to existing code
+### Areas We Need Help
 
-**For Experts**: Issues tagged with:
-- `advanced` - Complex features
-- `core` - Core system components
-- `security` - Security-critical features
+**Critical (Parity with rippled)**:
+- secp256k1 ECDSA implementation
+- Remaining transaction types (7 more)
+- Complete RPC methods (21 more)
+- Full peer protocol
+- Ledger history sync
 
-Browse open issues: https://github.com/SMC17/rip-zig/issues
+**High Priority**:
+- Performance optimization
+- Comprehensive testing
+- Documentation improvements
+- Bug fixes
+- Code review
 
-### 3. Claim an Issue
+**Learning-Friendly**:
+- Additional test cases
+- Code comments
+- Example programs
+- Tutorial content
+- Bug reports
 
-Comment on the issue saying you're working on it. This prevents duplicate work.
+### Contribution Process
 
-```
-I'd like to work on this! ETA: 1 week
-```
+1. **Find or create an issue** for what you want to work on
+2. **Comment** that you're taking it
+3. **Fork** the repository
+4. **Create a branch**: `git checkout -b feature/your-feature-name`
+5. **Make your changes** with tests
+6. **Run tests**: `zig build test` (must pass)
+7. **Commit** with clear message
+8. **Push** to your fork
+9. **Create Pull Request** with description
 
-## 📝 Development Workflow
+### Code Standards
 
-### 1. Fork & Branch
+**Quality Requirements**:
+- All tests must pass
+- No compiler warnings
+- Follow Zig standard formatting (`zig fmt`)
+- Add tests for new features
+- Document public APIs
+- NO EMOJIS in code or documentation
 
-```bash
-# Fork on GitHub, then clone your fork
-git clone https://github.com/YOUR_USERNAME/rip-zig.git
-cd rip-zig
-
-# Add upstream remote
-git remote add upstream https://github.com/SMC17/rip-zig.git
-
-# Create a feature branch
-git checkout -b feature/your-feature-name
-```
-
-### 2. Make Your Changes
-
-```bash
-# Edit files
-# Add tests for new functionality
-# Ensure all tests pass
-zig build test
-
-# Build to check for compilation errors
-zig build
-```
-
-### 3. Commit
-
-Write clear, descriptive commit messages:
-
-```bash
-git add .
-git commit -m "feat: add TCP listener for P2P networking
-
-- Implements basic TCP server on configurable port
-- Adds connection handling and error recovery
-- Includes unit tests for listener functionality
-- Closes #1"
-```
-
-**Commit Message Format**:
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation changes
-- `test:` - Adding or updating tests
-- `refactor:` - Code refactoring
-- `perf:` - Performance improvements
-- `chore:` - Build/tooling changes
-
-### 4. Push & Create PR
-
-```bash
-# Push to your fork
-git push origin feature/your-feature-name
-
-# Create Pull Request on GitHub
-# Fill out the PR template completely
-```
-
-## ✅ Pull Request Guidelines
-
-### Before Submitting
-
-- [ ] All tests pass (`zig build test`)
-- [ ] Code builds without warnings (`zig build`)
-- [ ] New features have tests
-- [ ] Documentation is updated
-- [ ] Commit messages are clear
-- [ ] Branch is up to date with main
-
-### PR Template
-
-Your PR should include:
-
-1. **Description**: What does this PR do?
-2. **Issue Reference**: Closes #XX
-3. **Type of Change**: Feature/Bug Fix/Documentation/etc.
-4. **Testing**: How was this tested?
-5. **Screenshots**: If UI/output changes
-6. **Checklist**: Confirm all items above
-
-### Example PR
-
-```markdown
-## Description
-Implements basic TCP listener for P2P networking
-
-## Closes
-Closes #1
-
-## Type of Change
-- [x] New feature
-- [ ] Bug fix
-- [ ] Documentation update
-
-## Testing
-- Added unit tests for TCP listener
-- Manually tested connection handling
-- All existing tests still pass
-
-## Checklist
-- [x] Tests pass
-- [x] Code builds
-- [x] Documentation updated
-- [x] Commit messages clear
-```
-
-## 🎨 Code Style
-
-### Zig Style Guide
-
-Follow standard Zig conventions:
-
+**Code Style**:
 ```zig
-// Good: Clear names, proper formatting
+// Good: Clear, documented, tested
 pub const LedgerManager = struct {
     allocator: std.mem.Allocator,
     current_ledger: Ledger,
     
     pub fn init(allocator: std.mem.Allocator) !LedgerManager {
-        return LedgerManager{
-            .allocator = allocator,
-            .current_ledger = Ledger.genesis(),
-        };
+        // Implementation
     }
 };
 
-// Bad: Unclear names, poor formatting
-pub const LM=struct{a:std.mem.Allocator,cl:Ledger,pub fn i(a:std.mem.Allocator)!LM{return LM{.a=a,.cl=Ledger.genesis()};}};
-```
-
-### Key Conventions
-
-1. **Naming**:
-   - Types: `PascalCase` (e.g., `LedgerManager`)
-   - Functions: `camelCase` (e.g., `getCurrentLedger`)
-   - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_XRP`)
-   - Variables: `snake_case` (e.g., `account_id`)
-
-2. **Formatting**:
-   - 4 spaces for indentation (no tabs)
-   - Line length: aim for 100 characters
-   - Use `zig fmt` to auto-format
-
-3. **Comments**:
-   - Document public APIs
-   - Explain complex algorithms
-   - Use TODO/FIXME for temporary code
-
-4. **Error Handling**:
-   - Always handle errors explicitly
-   - Use meaningful error types
-   - Document possible errors in comments
-
-### Testing
-
-```zig
-// Every public function should have tests
+// Add tests
 test "ledger manager initialization" {
     const allocator = std.testing.allocator;
     var manager = try LedgerManager.init(allocator);
     defer manager.deinit();
     
-    try std.testing.expectEqual(@as(u32, 1), manager.current_ledger.sequence);
+    try std.testing.expect(manager.current_ledger.sequence == 1);
 }
 ```
 
-## 🏗️ Architecture Guidelines
-
-### Module Organization
+### Commit Message Format
 
 ```
-src/
-├── main.zig          # Entry point only
-├── types.zig         # Core types (no dependencies)
-├── crypto.zig        # Cryptography (depends on types)
-├── ledger.zig        # Ledger (depends on types, crypto)
-├── consensus.zig     # Consensus (depends on ledger)
-├── transaction.zig   # Transactions (depends on ledger)
-├── network.zig       # Networking (depends on consensus)
-├── rpc.zig          # RPC API (depends on ledger)
-└── storage.zig      # Storage (depends on ledger)
+<type>: <short summary>
+
+<detailed description>
+
+Fixes #<issue-number>
 ```
 
-### Dependency Rules
+**Types**: feat, fix, docs, test, refactor, perf, chore
 
-- **No circular dependencies**
-- **Types module has no dependencies**
-- **Main only coordinates, doesn't implement**
-- **Use dependency injection**
+**Example**:
+```
+feat: implement CheckCreate transaction type
 
-### Memory Management
+- Add CheckCreate transaction structure
+- Implement validation logic
+- Add comprehensive tests
+- Update transaction processor
 
+Fixes #45
+```
+
+## Branch Strategy
+
+### Main Branches
+
+**main**: Production-ready code, tracks rippled parity  
+**develop**: Integration branch for new features  
+**experimental/***: Experimental features and optimizations  
+
+### Feature Branches
+
+**feature/***: New features  
+**fix/***: Bug fixes  
+**docs/***: Documentation improvements  
+**test/***: Test additions  
+
+### Release Process
+
+1. Features merge to `develop`
+2. Testing and validation on `develop`
+3. Release candidates from `develop`
+4. Stable releases merge to `main`
+
+## Testing Requirements
+
+### All contributions must include tests
+
+**Unit Tests**:
 ```zig
-// Good: Clear ownership, proper cleanup
-pub fn processTransaction(allocator: std.mem.Allocator, tx: Transaction) !Result {
-    var processor = try Processor.init(allocator);
-    defer processor.deinit();
-    
-    return processor.process(tx);
-}
-
-// Bad: Unclear ownership, potential leaks
-pub fn processTransaction(tx: Transaction) !Result {
-    var processor = Processor.init(std.heap.page_allocator);
-    return processor.process(tx); // Forgot to deinit!
-}
-```
-
-## 🧪 Testing Guidelines
-
-### Test Coverage
-
-- **Every public function** needs tests
-- **Edge cases** must be tested
-- **Error paths** must be tested
-- **Integration tests** for complex interactions
-
-### Test Organization
-
-```zig
-// At the end of each source file
-test "feature name: specific behavior" {
-    // Arrange
+test "your feature" {
     const allocator = std.testing.allocator;
-    var sut = try SystemUnderTest.init(allocator);
-    defer sut.deinit();
-    
-    // Act
-    const result = try sut.doSomething();
-    
+    // Setup
+    // Execute
     // Assert
-    try std.testing.expectEqual(expected, result);
 }
 ```
+
+**Integration Tests** (when applicable):
+- End-to-end workflows
+- Real network validation
+- Performance tests
 
 ### Running Tests
 
@@ -315,198 +187,147 @@ test "feature name: specific behavior" {
 zig build test
 
 # Specific module
-zig test src/ledger.zig
+zig test src/your_module.zig
 
-# With verbose output
-zig build test --summary all
+# Validation tests
+zig test tests/validation_suite.zig
 ```
 
-## 📚 Documentation Guidelines
+## Documentation
 
-### Code Documentation
+### What to Document
 
+- Public APIs (doc comments)
+- Complex algorithms (inline comments)
+- Design decisions (commit messages)
+- Breaking changes (CHANGELOG.md)
+
+### Documentation Style
+
+**Clear and Technical**:
 ```zig
-/// Manages the ledger chain and state.
+/// Calculate ledger hash from header fields.
 /// 
-/// The LedgerManager maintains the current validated ledger
-/// and provides access to historical ledgers.
-pub const LedgerManager = struct {
-    /// Closes the current ledger and creates a new one.
-    /// 
-    /// Applies all transactions to the ledger state and
-    /// calculates the new ledger hash.
-    /// 
-    /// Returns the newly created ledger.
-    pub fn closeLedger(self: *LedgerManager, txs: []const Transaction) !Ledger {
-        // Implementation
-    }
-};
+/// Uses SHA-512 Half on canonical serialization of:
+/// - Ledger sequence
+/// - Parent hash
+/// - Close time
+/// - Account state hash
+/// - Transaction hash
+/// 
+/// Returns 32-byte hash.
+pub fn calculateHash(self: *const Ledger) LedgerHash {
+    // Implementation
+}
 ```
 
-### README Updates
+**NO EMOJIS** - Use clear text and standard formatting
 
-If your change affects usage, update relevant documentation:
-- README.md - Main documentation
-- GETTING_STARTED.md - Tutorials
-- Examples - Add/update examples
+## Learning Resources
 
-## 🐛 Bug Reports
+### For XRPL Beginners
 
-### Before Reporting
+- Start with `src/types.zig` - understand XRP, amounts, accounts
+- Read `src/ledger.zig` - see how ledgers work
+- Study `src/consensus.zig` - learn Byzantine consensus
+- Check XRPL docs: https://xrpl.org/docs
 
-1. **Search existing issues** - Maybe it's already reported
-2. **Try latest version** - Maybe it's already fixed
-3. **Simplify** - Create minimal reproduction
+### For Zig Beginners
 
-### Bug Report Template
+- Review Zig documentation: https://ziglang.org/documentation/
+- Study our clean, well-tested code
+- Start with simple modules like `src/types.zig`
+- Ask questions in Discussions
 
-```markdown
-## Description
-Clear description of the bug
+### For Learning Both
 
-## Steps to Reproduce
-1. Build with `zig build`
-2. Run with `zig build run`
-3. Observe error
+This codebase is designed to teach BOTH:
+- See how XRPL protocol works
+- Learn Zig systems programming
+- Understand distributed consensus
+- Study production code structure
 
-## Expected Behavior
-What should happen
-
-## Actual Behavior
-What actually happens
-
-## Environment
-- OS: macOS 14.0
-- Zig version: 0.15.1
-- rippled-zig version: v0.1.0-alpha
-
-## Additional Context
-- Stack traces
-- Logs
-- Screenshots
-```
-
-## 💡 Feature Requests
-
-We love new ideas! But please:
-
-1. **Check roadmap** - Maybe it's already planned
-2. **Search issues** - Maybe someone else suggested it
-3. **Explain the "why"** - What problem does it solve?
-4. **Consider scope** - Is it aligned with project goals?
-
-### Feature Request Template
-
-```markdown
-## Problem
-What problem does this solve?
-
-## Proposed Solution
-How should this work?
-
-## Alternatives
-What other solutions did you consider?
-
-## Additional Context
-- Use cases
-- Examples from other projects
-- Implementation ideas
-```
-
-## 🔒 Security Issues
-
-**DO NOT** open public issues for security vulnerabilities!
-
-Instead:
-1. Email security@rip-zig.org (coming soon)
-2. Or create a private security advisory on GitHub
-3. Include detailed information
-4. We'll respond within 48 hours
-
-## 🎯 Priority Areas (November 2025)
-
-We especially need help with:
-
-### 1. 🔴 Critical: P2P Networking
-**Why**: Can't have a node without networking!
-**Skills**: Network programming, async I/O, protocols
-**Issues**: #1-8
-
-### 2. 🟡 Important: RPC Server
-**Why**: Needed for node interaction
-**Skills**: Web development, HTTP, WebSockets
-**Issues**: #9-17
-
-### 3. 🟡 Important: Complete Consensus
-**Why**: Core functionality
-**Skills**: Distributed systems, algorithms
-**Issues**: #18-25
-
-### 4. 🟢 Nice to Have: Documentation
-**Why**: Help others contribute
-**Skills**: Technical writing
-**Tags**: `documentation`
-
-## 🏆 Recognition
-
-We celebrate all contributors!
-
-### Hall of Fame
-- Monthly shoutouts for top contributors
-- Listed in CONTRIBUTORS.md
-- Mentioned in release notes
-- GitHub badges and achievements
-
-### Contribution Levels
-- 🌱 **Seedling**: First contribution
-- 🌿 **Contributor**: 5+ contributions
-- 🌳 **Core Contributor**: 20+ contributions
-- 🏆 **Maintainer**: Trusted with merge access
-
-## 💬 Community
+## Community
 
 ### Communication Channels
 
-- **GitHub Issues**: Feature requests, bugs
-- **GitHub Discussions**: General questions, ideas
-- **Discord** (coming soon): Real-time chat
-- **Twitter** (coming soon): Announcements
+- **GitHub Issues**: Bug reports, feature requests
+- **GitHub Discussions**: Questions, ideas, general discussion
+- **GitHub Projects**: Track progress on major initiatives
 
 ### Code of Conduct
 
-We are committed to providing a welcoming and inspiring community for all.
+- Be respectful and professional
+- Help others learn
+- Focus on technical merit
+- Welcome all skill levels
+- Maintain high standards
 
-**Expected Behavior**:
-- Be respectful and inclusive
-- Accept constructive criticism
-- Focus on what's best for the community
-- Show empathy
+## Project Goals
 
-**Unacceptable**:
-- Harassment or discriminatory language
-- Trolling or insulting comments
-- Public or private harassment
-- Other unprofessional conduct
+### Short Term (Next 6 Months)
 
-**Enforcement**: Violations may result in temporary or permanent ban.
+- Achieve 95%+ rippled parity
+- Complete all transaction types
+- Full RPC API implementation
+- Comprehensive test coverage
+- Security audit
 
-## 📞 Questions?
+### Medium Term (6-12 Months)
 
-- Check [README.md](README.md)
-- Check [GETTING_STARTED.md](GETTING_STARTED.md)
-- Browse existing issues
+- Performance optimization
+- Testnet compatibility verified
+- Production hardening
+- Extensive documentation
+- Growing contributor base
+
+### Long Term (12+ Months)
+
+- Full rippled parity maintained
+- Mainnet compatibility
+- Spin-out projects (libraries, tools)
+- Reference implementation status
+- Zig + XRPL community growth
+
+## Roadmap to Parity
+
+### Current Progress: ~75%
+
+**Complete**:
+- Core protocol (100%)
+- Consensus (100%)
+- Cryptography (95%)
+- Transaction types (72% - 18/25)
+- RPC methods (30% - 9/30)
+- Infrastructure (100%)
+
+**Remaining for Parity**:
+- 7 transaction types
+- 21 RPC methods
+- Complete peer protocol
+- Ledger sync
+- Amendment system
+- Performance tuning
+
+**Estimated Timeline**: 3-6 months with active contributions
+
+## Recognition
+
+Contributors are recognized in:
+- CONTRIBUTORS.md file
+- Release notes
+- GitHub contributor graphs
+- Project documentation
+
+## Questions?
+
+- Check existing documentation
+- Search closed issues
 - Ask in GitHub Discussions
-- Join our Discord (coming soon)
-
-## 🎉 Thank You!
-
-Every contribution matters - from fixing typos to implementing core features. Thank you for being part of this journey to build the future of XRP Ledger infrastructure!
-
-Together, we'll create the most advanced, optimized, performant, and secure XRPL implementation ever built.
+- Open a new issue
 
 ---
 
-**Happy Coding! 🚀**
+**Thank you for helping build the future of XRP Ledger infrastructure in Zig!**
 
-*Built with ❤️ by the rippled-zig community*
-
+**Together we'll create the most robust, educational, and extensible XRPL implementation.**
