@@ -18,13 +18,10 @@ pub fn build(b: *std.Build) void {
     });
     exe.linkLibC();
     
-    // secp256k1 is optional - only link if available
-    // For full ECDSA support, install: brew install secp256k1 (macOS) or apt-get install libsecp256k1-dev (Ubuntu)
-    // exe.linkSystemLibrary("secp256k1"); // Commented out - optional dependency
-
-    // Link secp256k1 library for ECDSA signature verification
-    // Install: brew install secp256k1 (macOS) or apt-get install libsecp256k1-dev (Linux)
-    exe.linkSystemLibrary("secp256k1");
+    // secp256k1 is optional - for full ECDSA signature support
+    // Install: brew install secp256k1 (macOS) or apt-get install libsecp256k1-dev (Ubuntu)
+    // Then uncomment the line below:
+    // exe.linkSystemLibrary("secp256k1");
 
     b.installArtifact(exe);
 
@@ -49,7 +46,7 @@ pub fn build(b: *std.Build) void {
         .root_module = test_module,
     });
     unit_tests.linkLibC();
-    unit_tests.linkSystemLibrary("secp256k1"); // Link secp256k1 for signature verification tests
+    // unit_tests.linkSystemLibrary("secp256k1"); // Optional - for full ECDSA tests
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
