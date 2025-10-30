@@ -255,11 +255,11 @@ fn testSignerListSet() !void {
         
         // validate() returns !void, so it either succeeds (void) or errors
         var passed = false;
-        tx.validate() catch |err| {
+        if (tx.validate()) {
+            passed = true;
+        } else |err| {
             _ = err;
             passed = false;
-        } else {
-            passed = true;
         }
         try recordResult("SignerListSet: Validation", passed, "Valid transaction passes validation", "Transactions");
         std.debug.print("  {s} SignerListSet validation\n", .{if (passed) "✅" else "❌"});
