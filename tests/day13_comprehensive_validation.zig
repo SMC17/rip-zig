@@ -277,12 +277,12 @@ fn testSignerListSet() !void {
         );
         
         var passed = false;
-        tx.validate() catch |err| {
+        if (tx.validate()) {
+            passed = false; // Should have errored
+        } else |err| {
             if (err == error.InsufficientSignerWeight) {
                 passed = true;
             }
-        } else {
-            passed = false; // Should have errored
         }
         try recordResult("SignerListSet: Invalid quorum", passed, "Rejects insufficient weight", "Transactions");
         std.debug.print("  {s} Invalid quorum rejection\n", .{if (passed) "✅" else "❌"});
