@@ -38,7 +38,7 @@ pub const MerkleTree = struct {
         }
         
         // Build tree bottom-up
-        var current_level = std.ArrayList([32]u8).init(self.allocator);
+        var current_level = std.ArrayList([32]u8).initCapacity(self.allocator, self.leaves.items.len) catch return [_]u8{0} ** 32;
         defer current_level.deinit(self.allocator);
         
         // Copy leaves to current level

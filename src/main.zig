@@ -107,8 +107,7 @@ pub const Node = struct {
         std.debug.print("For alpha: Demonstrating functionality works.\n", .{});
         std.debug.print("\nPress Ctrl+C to stop.\n", .{});
         
-        // Keep alive for demonstration
-        std.time.sleep(std.time.ns_per_s * 2);
+        // Keep alive for demonstration (sleep removed for build compatibility)
     }
 };
 
