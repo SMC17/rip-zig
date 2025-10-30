@@ -79,8 +79,8 @@ pub const MerkleTree = struct {
     /// Get merkle proof for a leaf at index
     pub fn getProof(self: *const MerkleTree, index: usize) ![]const [32]u8 {
         if (index >= self.leaves.items.len) return error.IndexOutOfBounds;
-
-        var proof = std.ArrayList([32]u8).init(self.allocator);
+        
+        var proof = try std.ArrayList([32]u8).initCapacity(self.allocator, 0);
         errdefer proof.deinit(self.allocator);
 
         // TODO: Implement full merkle proof generation
@@ -146,7 +146,7 @@ pub const StateTree = struct {
         }
 
         // Collect all hashes and sort
-        var hashes = std.ArrayList([32]u8).init(self.allocator);
+        var hashes = std.ArrayList([32]u8).initCapacity(self.allocator, self.nodes.count()) catch return [_]u8{0} ** 32;
         defer hashes.deinit(self.allocator);
 
         var it = self.nodes.keyIterator();
