@@ -85,11 +85,7 @@ pub const Network = struct {
         };
 
         try self.peers.append(self.allocator, peer);
-        std.debug.print("Connected to peer {}:{d} (ledger: {d})\n", .{ 
-            std.fmt.fmtSliceHexLower(address[0..@min(8, address.len)]), 
-            port,
-            handshake_result.peer_ledger_seq 
-        });
+        std.debug.print("Connected to peer {}:{d} (ledger: {d})\n", .{ std.fmt.fmtSliceHexLower(address[0..@min(8, address.len)]), port, handshake_result.peer_ledger_seq });
 
         return &self.peers.items[self.peers.items.len - 1];
     }

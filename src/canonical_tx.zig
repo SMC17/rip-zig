@@ -5,25 +5,24 @@ const canonical = @import("canonical.zig");
 const base58 = @import("base58.zig");
 
 /// Complete Canonical Transaction Serialization for Signature Verification
-/// 
+///
 /// Serializes transactions in XRPL canonical format (without signature fields)
 /// for use in transaction hash calculation and signature verification
-
 pub const CanonicalTransactionSerializer = struct {
     allocator: std.mem.Allocator,
     serializer: canonical.CanonicalSerializer,
-    
+
     pub fn init(allocator: std.mem.Allocator) !CanonicalTransactionSerializer {
         return CanonicalTransactionSerializer{
             .allocator = allocator,
             .serializer = try canonical.CanonicalSerializer.init(allocator),
         };
     }
-    
+
     pub fn deinit(self: *CanonicalTransactionSerializer) void {
         self.serializer.deinit();
     }
-    
+
     /// Serialize transaction for signing (EXCLUDES signature fields)
     /// This is what gets hashed to produce the transaction hash
     pub fn serializeForSigning(self: *CanonicalTransactionSerializer, tx_json: TransactionJSON) ![]u8 {
@@ -35,45 +34,45 @@ pub const CanonicalTransactionSerializer = struct {
         // 5. Fee (UInt64, field 8)
         // ... transaction-specific fields ...
         // NOTE: SigningPubKey and TxnSignature are EXCLUDED for signing
-        
+
         // TransactionType
         if (tx_json.TransactionType) |tx_type| {
             const tx_type_code = txTypeToCode(tx_type);
             try self.serializer.addUInt16(2, tx_type_code);
         }
-        
+
         // Flags (UInt32, field 2)
         if (tx_json.Flags) |flags| {
             try self.serializer.addUInt32(2, flags);
         }
-        
+
         // Account (AccountID, field 1)
         if (tx_json.Account) |account_str| {
             const account = try base58.Base58.decodeAccountID(self.allocator, account_str);
             defer self.allocator.free(account);
             try self.serializer.addAccountID(1, account);
         }
-        
+
         // Sequence (UInt32, field 4)
         if (tx_json.Sequence) |seq| {
             try self.serializer.addUInt32(4, seq);
         }
-        
+
         // Fee (UInt64, field 8)
         if (tx_json.Fee) |fee_str| {
             const fee = try parseDrops(fee_str);
             try self.serializer.addUInt64(8, fee);
         }
-        
+
         // Transaction-specific fields
         if (tx_json.TransactionType) |tx_type| {
             try self.addTransactionSpecificFields(tx_type, tx_json);
         }
-        
+
         // Finalize and return
         return try self.serializer.finish();
     }
-    
+
     /// Add transaction-specific fields
     fn addTransactionSpecificFields(self: *CanonicalTransactionSerializer, tx_type: []const u8, tx_json: TransactionJSON) !void {
         if (std.mem.eql(u8, tx_type, "Payment")) {
@@ -83,7 +82,7 @@ pub const CanonicalTransactionSerializer = struct {
                 defer self.allocator.free(dest);
                 try self.serializer.addAccountID(3, dest);
             }
-            
+
             // Amount (Amount, field 1)
             if (tx_json.Amount) |amount_str| {
                 // Parse amount (could be XRP drops or IOU)
@@ -104,7 +103,7 @@ pub const CanonicalTransactionSerializer = struct {
             if (tx_json.SignerQuorum) |quorum| {
                 try self.serializer.addUInt32(5, quorum);
             }
-            
+
             // SignerEntries (Array, field 9) - variable length
             if (tx_json.SignerEntries) |entries| {
                 // Serialize signer entries array
@@ -113,7 +112,7 @@ pub const CanonicalTransactionSerializer = struct {
         }
         // Add more transaction types as needed
     }
-    
+
     /// Calculate transaction hash from serialized data
     pub fn calculateHash(serialized: []const u8) types.TxHash {
         return crypto.Hash.sha512Half(serialized);
@@ -177,10 +176,10 @@ fn parseAmount(allocator: std.mem.Allocator, amount_str: []const u8) !types.Amou
 
 test "canonical transaction serialization" {
     const allocator = std.testing.allocator;
-    
+
     var ser = try CanonicalTransactionSerializer.init(allocator);
     defer ser.deinit();
-    
+
     // Test transaction data (simplified)
     const tx_json = TransactionJSON{
         .TransactionType = "Payment",
@@ -189,14 +188,13 @@ test "canonical transaction serialization" {
         .Fee = "10",
         .Flags = 2147483648, // tfFullyCanonicalSig
     };
-    
+
     const serialized = try ser.serializeForSigning(tx_json);
     defer allocator.free(serialized);
-    
+
     const hash = CanonicalTransactionSerializer.calculateHash(serialized);
-    
+
     std.debug.print("[PASS] Canonical transaction serialization works\n", .{});
     std.debug.print("   Serialized length: {d} bytes\n", .{serialized.len});
     std.debug.print("   Hash: {s}...\n", .{std.fmt.fmtSliceHexLower(hash[0..8])});
 }
-

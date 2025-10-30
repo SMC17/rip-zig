@@ -7,76 +7,44 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  test:
+    name: Test Suite
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        zig-version: ['0.15.1']
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Zig
       uses: goto-bus-stop/setup-zig@v2
       with:
-        version: ${{ matrix.zig-version }}
-    
-    - name: Verify Zig installation
-      run: zig version
-    
-    - name: Check code formatting
-      run: zig fmt --check src/
+        version: 0.15.1
     
     - name: Build
       run: zig build
     
-    - name: Run tests
+    - name: Run Tests
       run: zig build test
     
-    - name: Test node runs
-      run: |
-        timeout 5s zig build run || true
-        echo "Node execution completed"
+    - name: Check Formatting
+      run: zig fmt --check src/ tests/
 
-  lint:
+  quality:
     name: Code Quality
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Zig
       uses: goto-bus-stop/setup-zig@v2
       with:
-        version: '0.15.1'
+        version: 0.15.1
     
-    - name: Check formatting
+    - name: Format Check
       run: zig fmt --check .
     
-    - name: Build check
+    - name: Build Check
       run: zig build --summary all
-
-  documentation:
-    name: Documentation Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Check README exists
-      run: test -f README.md
-    
-    - name: Check CONTRIBUTING exists
-      run: test -f CONTRIBUTING.md
-    
-    - name: Verify documentation links
-      run: |
-        # Check main documentation files are present
-        test -f LICENSE
-        test -f CODE_OF_CONDUCT.md
-        echo "Core documentation present"

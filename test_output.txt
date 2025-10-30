@@ -1,0 +1,22 @@
+test
++- run test stderr
+Ledger closed: seq=2, hash={ 8, 251, 221, 37, 93, 251, 248, 249 }
+Consensus round 1 started with 0 candidate transactions
+Received proposal from validator { 10, 10, 10, 10, 10, 10, 10, 10 }
+Received proposal from validator { 11, 11, 11, 11, 11, 11, 11, 11 }
+Received proposal from validator { 12, 12, 12, 12, 12, 12, 12, 12 }
+Received proposal from validator { 13, 13, 13, 13, 13, 13, 13, 13 }
+Phase: ESTABLISH
+Phase: CONSENSUS 50%
+Phase: CONSENSUS 60% (agreement: 100.0%)
+Phase: CONSENSUS 70% (agreement: 100.0%)
+Phase: CONSENSUS 80% (agreement: 100.0%)
+Phase: VALIDATION (agreement: 100.0%)
+[PASS] Can parse DER signatures
+   r: { 227, 15, 234, 207, 174, 158, 216, 3 }...
+   s: { 12, 167, 253, 240, 61, 192, 181, 111 }...
+[INFO] secp256k1 verification attempted (result: false)
+[INFO] Note: This uses synthetic data - real verification needs actual tx hash
+[INFO] secp256k1 binding interface defined
+[INFO] Requires: libsecp256k1 installed
+[INFO] Build with: exe.linkSystemLibrary("secp256k1")
