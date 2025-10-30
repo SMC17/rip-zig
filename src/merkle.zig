@@ -162,7 +162,7 @@ pub const StateTree = struct {
         }.lessThan);
 
         // Hash all together
-        var combined = std.ArrayList(u8).init(self.allocator);
+        var combined = std.ArrayList(u8).initCapacity(self.allocator, hashes.items.len * 32) catch return [_]u8{0} ** 32;
         defer combined.deinit(self.allocator);
 
         for (hashes.items) |hash| {
