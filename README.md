@@ -1,4 +1,4 @@
-# rippled-zig
+go check# rippled-zig
 
 [![CI](https://github.com/SMC17/rip-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/SMC17/rip-zig/actions)
 [![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)

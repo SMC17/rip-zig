@@ -52,11 +52,14 @@ pub const KeyPair = struct {
     
     /// Generate a new Ed25519 key pair
     pub fn generateEd25519(allocator: std.mem.Allocator) !KeyPair {
-        const seed = std.crypto.random.bytes(32);
-        const key_pair = try std.crypto.sign.Ed25519.KeyPair.create(seed);
+        // Generate key pair - uses std.crypto.random internally
+        const key_pair = std.crypto.sign.Ed25519.KeyPair.generate();
         
-        const public_key = try allocator.dupe(u8, &key_pair.public_key);
-        const private_key = try allocator.dupe(u8, &key_pair.secret_key);
+        // Convert PublicKey and SecretKey structs to byte slices
+        const pub_key_bytes = key_pair.public_key.toBytes();
+        const public_key = try allocator.dupe(u8, &pub_key_bytes);
+        const secret_key_bytes = key_pair.secret_key.toBytes();
+        const private_key = try allocator.dupe(u8, &secret_key_bytes);
         
         return KeyPair{
             .algorithm = .ed25519,
@@ -74,12 +77,22 @@ pub const KeyPair = struct {
                     return error.InvalidKeyLength;
                 }
                 
-                var key_pair: std.crypto.sign.Ed25519.KeyPair = undefined;
-                @memcpy(&key_pair.secret_key, self.private_key);
-                @memcpy(&key_pair.public_key, self.public_key);
+                // Reconstruct KeyPair from stored bytes
+                var secret_key_bytes: [64]u8 = undefined;
+                @memcpy(&secret_key_bytes, self.private_key);
+                var pub_key_bytes: [32]u8 = undefined;
+                @memcpy(&pub_key_bytes, self.public_key[0..32]);
                 
-                const signature = try std.crypto.sign.Ed25519.sign(data, key_pair, null);
-                return try allocator.dupe(u8, &signature.toBytes());
+                const secret_key = try std.crypto.sign.Ed25519.SecretKey.fromBytes(secret_key_bytes);
+                const pub_key = try std.crypto.sign.Ed25519.PublicKey.fromBytes(pub_key_bytes);
+                const key_pair = std.crypto.sign.Ed25519.KeyPair{
+                    .secret_key = secret_key,
+                    .public_key = pub_key,
+                };
+                
+                const signature = try key_pair.sign(data, null);
+                const sig_bytes = signature.toBytes();
+                return try allocator.dupe(u8, &sig_bytes);
             },
             .secp256k1 => {
                 // ECDSA secp256k1 would be implemented here
@@ -100,12 +113,14 @@ pub const KeyPair = struct {
                 var pub_key: [32]u8 = undefined;
                 @memcpy(&pub_key, public_key);
                 
-                var sig: [64]u8 = undefined;
-                @memcpy(&sig, signature);
+                var sig_bytes: [64]u8 = undefined;
+                @memcpy(&sig_bytes, signature);
                 
-                const sig_struct = std.crypto.sign.Ed25519.Signature.fromBytes(sig);
+                const sig = std.crypto.sign.Ed25519.Signature.fromBytes(sig_bytes);
+                const pub_key_struct = try std.crypto.sign.Ed25519.PublicKey.fromBytes(pub_key);
                 
-                std.crypto.sign.Ed25519.verify(sig_struct, data, pub_key) catch {
+                // Verify signature using Signature.verify method (Zig 0.15.1 API)
+                sig.verify(data, pub_key_struct) catch {
                     return false;
                 };
                 return true;

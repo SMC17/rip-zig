@@ -68,6 +68,17 @@ pub const NFTManager = struct {
         try self.offers.append(self.allocator, offer);
     }
     
+    /// Cancel an NFT offer - WEEK 3 DAY 19
+    pub fn cancelOffer(self: *NFTManager, offer_id: [32]u8) !void {
+        for (self.offers.items, 0..) |offer, idx| {
+            if (std.mem.eql(u8, &offer.offer_id, &offer_id)) {
+                _ = self.offers.swapRemove(idx);
+                return;
+            }
+        }
+        return error.OfferNotFound;
+    }
+    
     /// Accept an NFT offer
     pub fn acceptOffer(self: *NFTManager, offer_id: [32]u8) !void {
         for (self.offers.items, 0..) |offer, i| {
@@ -222,6 +233,71 @@ pub const NFTokenCreateOfferTransaction = struct {
     }
 };
 
+/// NFTokenCancelOffer transaction - WEEK 3 DAY 19
+pub const NFTokenCancelOfferTransaction = struct {
+    base: types.Transaction,
+    offer_id: [32]u8, // Hash of the offer to cancel
+    
+    pub fn create(
+        account: types.AccountID,
+        offer_id: [32]u8,
+        fee: types.Drops,
+        sequence: u32,
+        signing_pub_key: [33]u8,
+    ) NFTokenCancelOfferTransaction {
+        return NFTokenCancelOfferTransaction{
+            .base = types.Transaction{
+                .tx_type = .nftoken_cancel_offer,
+                .account = account,
+                .fee = fee,
+                .sequence = sequence,
+                .signing_pub_key = signing_pub_key,
+            },
+            .offer_id = offer_id,
+        };
+    }
+    
+    pub fn validate(self: *const NFTokenCancelOfferTransaction) !void {
+        // Basic validation
+        if (self.base.fee < types.MIN_TX_FEE) return error.InsufficientFee;
+        if (self.base.sequence == 0) return error.InvalidSequence;
+    }
+};
+
+/// NFTokenAcceptOffer transaction - WEEK 3 DAY 19
+pub const NFTokenAcceptOfferTransaction = struct {
+    base: types.Transaction,
+    nft_offer_id: [32]u8, // Hash of the offer to accept
+    broker_fee: ?types.Amount = null, // Optional broker fee
+    
+    pub fn create(
+        account: types.AccountID,
+        nft_offer_id: [32]u8,
+        fee: types.Drops,
+        sequence: u32,
+        signing_pub_key: [33]u8,
+        broker_fee: ?types.Amount,
+    ) NFTokenAcceptOfferTransaction {
+        return NFTokenAcceptOfferTransaction{
+            .base = types.Transaction{
+                .tx_type = .nftoken_accept_offer,
+                .account = account,
+                .fee = fee,
+                .sequence = sequence,
+                .signing_pub_key = signing_pub_key,
+            },
+            .nft_offer_id = nft_offer_id,
+            .broker_fee = broker_fee,
+        };
+    }
+    
+    pub fn validate(self: *const NFTokenAcceptOfferTransaction) !void {
+        // Basic validation
+        if (self.base.fee < types.MIN_TX_FEE) return error.InsufficientFee;
+        if (self.base.sequence == 0) return error.InvalidSequence;
+    }
+};
+
 test "nft manager" {
     const allocator = std.testing.allocator;
     var manager = NFTManager.init(allocator);
@@ -243,6 +319,39 @@ test "nft mint transaction" {
     
     try tx.validate();
     try std.testing.expectEqual(types.TransactionType.nftoken_mint, tx.base.tx_type);
+}
+
+test "nft cancel offer transaction" {
+    const account = [_]u8{1} ** 20;
+    const offer_id = [_]u8{0xAA} ** 32;
+    
+    const tx = NFTokenCancelOfferTransaction.create(
+        account,
+        offer_id,
+        types.MIN_TX_FEE,
+        1,
+        [_]u8{0} ** 33,
+    );
+    
+    try tx.validate();
+    try std.testing.expectEqual(types.TransactionType.nftoken_cancel_offer, tx.base.tx_type);
+}
+
+test "nft accept offer transaction" {
+    const account = [_]u8{1} ** 20;
+    const offer_id = [_]u8{0xBB} ** 32;
+    
+    const tx = NFTokenAcceptOfferTransaction.create(
+        account,
+        offer_id,
+        types.MIN_TX_FEE,
+        1,
+        [_]u8{0} ** 33,
+        null, // no broker fee
+    );
+    
+    try tx.validate();
+    try std.testing.expectEqual(types.TransactionType.nftoken_accept_offer, tx.base.tx_type);
 }
 
 test "transfer fee validation" {

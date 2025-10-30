@@ -123,7 +123,10 @@ fn verifySignerSignature(tx_hash: *const [32]u8, pub_key: *const [33]u8, signatu
         @memcpy(&sig_bytes, signature[0..64]);
         
         const sig = std.crypto.sign.Ed25519.Signature.fromBytes(sig_bytes);
-        std.crypto.sign.Ed25519.verify(sig, tx_hash, ed_pub_key) catch return false;
+        const pub_key_struct = try std.crypto.sign.Ed25519.PublicKey.fromBytes(ed_pub_key);
+        
+        // Verify signature using Signature.verify method (Zig 0.15.1 API - FIXED)
+        sig.verify(tx_hash, pub_key_struct) catch return false;
         return true;
     } else if (pub_key[0] == 0x02 or pub_key[0] == 0x03) {
         // secp256k1

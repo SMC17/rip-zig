@@ -212,7 +212,7 @@ pub const ConsensusEngine = struct {
         const duration_ms = std.time.milliTimestamp() - self.round_start_time;
         
         // Build final transaction set from proposals
-        var final_txs = std.ArrayList(types.Transaction).init(self.allocator);
+        var final_txs = try std.ArrayList(types.Transaction).initCapacity(self.allocator, 0);
         defer final_txs.deinit(self.allocator);
         
         // Close the ledger
