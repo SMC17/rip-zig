@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
         .root_module = main_module,
     });
     exe.linkLibC();
-    
+
     b.installArtifact(exe);
 
     // Run command
@@ -36,7 +36,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    
+
     const unit_tests = b.addTest(.{
         .root_module = test_module,
     });

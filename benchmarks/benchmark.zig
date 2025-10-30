@@ -159,7 +159,7 @@ fn benchmarkMemoryUsage(allocator: std.mem.Allocator) !void {
 
     // Get initial memory
     const initial = try std.process.totalSystemMemory();
-    
+
     // Create a bunch of objects
     var manager = try ledger.LedgerManager.init(allocator);
     defer manager.deinit();
@@ -171,7 +171,7 @@ fn benchmarkMemoryUsage(allocator: std.mem.Allocator) !void {
     for (0..1000) |i| {
         var account_id: [20]u8 = undefined;
         std.mem.writeInt(u160, &account_id, @intCast(i), .big);
-        
+
         const account = types.AccountRoot{
             .account = account_id,
             .balance = 1_000 * types.XRP,
@@ -197,4 +197,3 @@ fn benchmarkMemoryUsage(allocator: std.mem.Allocator) !void {
     std.debug.print("  - Ledgers closed: 100\n", .{});
     std.debug.print("  - Approximate memory used: {d} bytes\n\n", .{used});
 }
-
