@@ -63,7 +63,7 @@ pub const Security = struct {
             const now = std.time.milliTimestamp();
 
             var to_remove = std.ArrayList([16]u8).init(self.allocator);
-            defer to_remove.deinit(self.allocator);
+            defer to_remove.deinit();
 
             var it = self.limits.iterator();
             while (it.next()) |entry| {
